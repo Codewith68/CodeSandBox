@@ -1,14 +1,16 @@
+import { Route ,Routes} from 'react-router-dom'
 import './App.css'
+import { CreateProject } from './pages/createProject'
 
 
 function App() {
   
+return (
+  <Routes>
+    <Route path="/" element={<CreateProject/>} />
+  </Routes>
 
-  return (
-    <>
-      <h1>Hello World</h1>
-    </>
-  )
+)
 }
 
 export default App
