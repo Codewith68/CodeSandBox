@@ -18,8 +18,12 @@ useEffect(()=>{
     
     return (
         <>
-        project Id is:{projectIdFromUrl}
-       {projectId &&(
+       <div
+       style={{
+        display:"flex"
+       }}>
+
+        {projectId &&(
         <div
         style={{
             backgroundColor:"#333254",
@@ -34,9 +38,9 @@ useEffect(()=>{
         >
         <TreeStructure/>
         </div>
-        
         )}
         <EditorComponent/>
+       </div>
         <EditorButton isActive={false}/>
         <EditorButton isActive={true}/>
         

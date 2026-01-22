@@ -34,7 +34,7 @@ return (
     <>
     {    editorState.theme &&
         <Editor
-    height ={'80vh'}
+    height ={'100vh'}
     width={'100%'}
     defaultLanguage="javascript"
     defaultValue="//Welcome To The Playground"
