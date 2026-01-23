@@ -2,19 +2,31 @@ import { useParams } from "react-router-dom";
 import { EditorComponent } from "../components/molecules/EditorComponent/EditorComponent";
 import { EditorButton } from "../components/atoms/EditorButton/EditorButton";
 import { TreeStructure } from "../components/organism/treeStructure/treeStructure";
-import { useEffect } from "react";
+import {  useEffect } from "react";
 import { useTreeStructureStore } from "../store/treeStructureStore";
+import { useEditorSocketStore } from "../store/editorSocketStore";
+import {io} from 'socket.io-client'
+
 
 export const ProjectPlayground = () => {
 
 const{projectId:projectIdFromUrl}=useParams();
 const {setProjectId,projectId} = useTreeStructureStore();
+const {setEditorSocket } =useEditorSocketStore();
+
 
 useEffect(()=>{
-
+    if(projectIdFromUrl){
     setProjectId(projectIdFromUrl);
+    const editorSocketconn=io(`${import.meta.env.VITE_BACKEND_URL}/editor`,{
+        query:{
+            projectId:projectIdFromUrl
+        }
+    })
+     setEditorSocket(editorSocketconn);
+}
 
-},[setProjectId,projectIdFromUrl])
+},[setProjectId,projectIdFromUrl,setEditorSocket])
     
     return (
         <>
