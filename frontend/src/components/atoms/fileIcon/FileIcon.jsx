@@ -4,7 +4,7 @@ import { SiGitignoredotio } from "react-icons/si";
 import { ImSvg } from "react-icons/im";
 
 
-export const Fileicon =({extension})=>{
+export const FileIcon =({extension})=>{
     const iconStyle={
         height:"20px",
         width:"20px",

@@ -1,62 +1,71 @@
-import Editor from "@monaco-editor/react";
-import { useEffect, useState } from "react";
-import { useEditorSocketStore } from "../../../store/editorSocketStore.js";
-import { useActiveFileTabStore } from "../../../store/activeFileTabStore.js";
+import Editor from '@monaco-editor/react';
+import { useEffect, useState } from 'react';
+import { useActiveFileTabStore } from '../../../store/activeFileTabStore';
+import { useEditorSocketStore } from '../../../store/editorSocketStore';
+import { extensionToFileType } from '../../../utils/extensionToFileType';
 
 export const EditorComponent = () => {
 
-  const [editorState, setEditorState] = useState({
-    theme: null
-  });
- const {  activeFileTab, setActiveFileTab } = useActiveFileTabStore();
-  const { editorSocket } = useEditorSocketStore();
-
-  function handelEditorTheme(editor, monaco) {
-    if (!editorState.theme) return;
-    monaco.editor.defineTheme("dark", editorState.theme);
-    monaco.editor.setTheme("dark");
-  }
-
-  useEffect(() => {
-    if (!editorSocket) return;
-
-    editorSocket.on("readFileSuccess", (data) => {
-      console.log("received file content from server", data);
-      setActiveFileTab(data.path, data.value,);
+    var timerId = null;
+    const [editorState, setEditorState] = useState({
+        theme: null
     });
 
-    return () => {
-      editorSocket.off("readFileSuccess");
-    };
-  }, [editorSocket]);
+    const { activeFileTab } = useActiveFileTabStore();
 
-  useEffect(() => {
+    const { editorSocket } = useEditorSocketStore();
+
     async function downloadTheme() {
-      const response = await fetch("/dark.json");
-      const data = await response.json();
-      setEditorState(prev => ({ ...prev, theme: data }));
+        const response = await fetch('/dark.json');
+        const data = await response.json();
+        console.log(data);
+        setEditorState({ ...editorState, theme: data });
     }
-    downloadTheme();
-  }, []);
 
- const editorValue =
-  activeFileTab?.value ?? "//Welcome To The Playground";
+    function handleEditorTheme(editor, monaco) {
+        monaco.editor.defineTheme('dark', editorState.theme);
+        monaco.editor.setTheme('dark');
+    }
+    function handleChange(value) {
+        // Clear old timer
+        if(timerId != null) {
+            clearTimeout(timerId);
+        }
+        // set the new timer
+        timerId = setTimeout(() => {
+            const editorContent = value;
+            console.log("Sending writefile event");
+            editorSocket.emit("writeFile", {
+                data: editorContent,
+                pathToFileOrFolder: activeFileTab.path
+            })
+        }, 2000);
+        
+    }
 
-return (
-  <>
-    {editorState.theme && (
-      <Editor
-        height="100vh"
-        width="100%"
-        defaultLanguage={undefined}
-        options={{
-          fontSize: 18,
-          fontFamily: "Monospace",
-        }}
-        value={editorValue}
-        onMount={handelEditorTheme}
-      />
-    )}
-  </>
-);
-};
+    useEffect(() => {
+        downloadTheme();
+    }, []);
+
+    return (
+        <>
+            {   editorState.theme &&
+                <Editor 
+                    height={'100vh'}
+                    width={'100%'}
+                    defaultLanguage={undefined}
+                    defaultValue='// Welcome to the playground'
+                    options={{
+                        fontSize: 18,
+                        fontFamily: 'monospace'
+                    }}
+                    language={extensionToFileType(activeFileTab?.extension)}
+                    onChange={handleChange}
+                    value={activeFileTab?.value ? activeFileTab.value : '// Welcome to the playground'}
+
+                    onMount={handleEditorTheme}
+                />
+            }
+        </>
+    )
+  }
