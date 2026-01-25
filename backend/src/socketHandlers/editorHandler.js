@@ -1,19 +1,23 @@
 import fs from "fs/promises";
 export const handleEditorSocketEvents = (socket, editorNamespace) => {
     socket.on("writeFile", async ({ data, pathToFileOrFolder }) => {
-        try {
-            const response = await fs.writeFile(pathToFileOrFolder, data);
-            editorNamespace.emit("writeFileSuccess", {
-                data: "File written successfully",
-                path: pathToFileOrFolder,
-            })
-        } catch(error) {
-            console.log("Error writing the file", error);
-            socket.emit("error", {
-                data: "Error writing the file",
-            });
-        }
+  try {
+    await fs.writeFile(pathToFileOrFolder, data);
+
+    socket.to(pathToFileOrFolder).emit("remoteFileUpdate", {
+      value: data,
+      path: pathToFileOrFolder
     });
+
+    socket.emit("writeFileSuccess", {
+      data: "File written successfully",
+      path: pathToFileOrFolder,
+    });
+  } catch (error) {
+    socket.emit("error", { data: "Error writing file" });
+  }
+});
+
 
 
     socket.on("createFile", async ({ pathToFileOrFolder }) => {
@@ -37,6 +41,24 @@ export const handleEditorSocketEvents = (socket, editorNamespace) => {
             });
         }
     });
+socket.on("renameFileOrFolder", async ({ oldPath, newPath }) => {
+  try {
+    await fs.rename(oldPath, newPath);
+
+    socket.emit("renameFileOrFolderSuccess", {
+      oldPath,
+      newPath,
+      data: "File or folder renamed successfully",
+    });
+
+  } catch (error) {
+    console.log("Error renaming", error);
+    socket.emit("error", {
+      data: "Error renaming the file or folder",
+    });
+  }
+});
+
 
 
     socket.on("readFile", async ({ pathToFileOrFolder }) => {

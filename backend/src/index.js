@@ -7,6 +7,7 @@ import chokidar from 'chokidar';
 import apiRouter from "./routes/index.js";
 import {PORT} from "./config/serverConfig.js";
 import { handleEditorSocketEvents } from "./socketHandlers/editorHandler.js";
+import { handleContainerCreate } from "./containers/handleContainerCreate.js";
 
 const app=express();
 const server = createServer(app);
@@ -62,6 +63,25 @@ editorNamespace.on('connection', (socket) => {
   })
   
 }
+socket.on("joinFileRoom", ({ path }) => {
+    socket.join(path);
+    console.log(`joined room: ${path}`);
+  });
+
+  socket.on("leaveFileRoom", ({ path }) => {
+    socket.leave(path);
+    console.log(`left room: ${path}`);
+  });
+  socket.on("joinProjectRoom", ({ projectId }) => {
+    socket.join(projectId);
+    console.log(`joined room: ${projectId}`);
+  });
+
+  socket.on("leaveProjectRoom", ({ projectId }) => {
+    socket.leave(projectId);
+    console.log(`left room: ${projectId}`);
+  });
+
 
 handleEditorSocketEvents(socket,editorNamespace);
 
@@ -70,6 +90,21 @@ handleEditorSocketEvents(socket,editorNamespace);
     console.log('user disconnected');
   });
 })
+const terminalNamespace =io.of('/terminal');
+terminalNamespace.on('connection', (socket) => {
+  console.log('a user connected to terminal');
+    let projectId=socket.handshake.query['projectId'];
+  socket.on("shell-input",(data)=>{
+  console.log("input received data",data);
+  terminalNamespace.emit("shell-output",data);  
+});
+  socket.on('disconnect', () => {
+    console.log('user disconnected from terminal');
+  });
+
+  handleContainerCreate(projectId,socket);
+})
+
 
 
 
