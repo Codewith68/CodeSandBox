@@ -94,10 +94,10 @@ const terminalNamespace =io.of('/terminal');
 terminalNamespace.on('connection', (socket) => {
   console.log('a user connected to terminal');
     let projectId=socket.handshake.query['projectId'];
-  socket.on("shell-input",(data)=>{
-  console.log("input received data",data);
-  terminalNamespace.emit("shell-output",data);  
-});
+//   socket.on("shell-input",(data)=>{
+//   console.log("input received data",data);
+//   terminalNamespace.emit("shell-output",data);  
+// });
   socket.on('disconnect', () => {
     console.log('user disconnected from terminal');
   });

@@ -34,8 +34,58 @@ export const handleContainerCreate =async(projectId,socket)=>{
             console.log("container created successfully",container.id);
             await container.start();
             console.log("container started successfully");
+
+
+            container.exec({
+                Cmd: ['/bin/bash'],
+                AttachStdin: true,
+                AttachStdout: true,
+                AttachStderr: true,
+            },(err,exec)=>{
+                if(err){
+                    console.log("error while executing command",err);
+                }
+                exec.start({
+                    hijack: true,
+                    stdin: true,
+                    stdout: true,
+                },(err,stream)=>{
+                    if(err){
+                        console.log("error while starting exec",err);
+                        return;
+                    }
+                    processStream(stream,socket);
+                    socket.on("shell-input",(data)=>{
+                        console.log("input received data",data);
+                        stream.write('pwd\n');
+                    })
+                })
+            })
     } catch (error) {
         console.log("error while creating container",error);
     }
+
+}
+function processStream(stream,socket){
+
+    let buffer= Buffer.from("");
+    stream.on("data",(chunk)=>{
+        buffer=Buffer.concat([buffer,chunk]);
+        socket.emit("shell-output",buffer.toString());
+        buffer= Buffer.from("");
+})
+
+stream.on("end",()=>{
+    console.log("stream ended");
+    socket.emit("shell-output","stream ended");
+})
+
+
+stream.on("error",(err)=>{
+    console.log("error while processing stream",err);
+    socket.emit("shell-output","error while processing stream");    
+    socket.emit("shell-output",err.message);    
+})
+
 
 }
