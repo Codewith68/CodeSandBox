@@ -2,14 +2,13 @@ import {Terminal } from "@xterm/xterm"
 import { FitAddon } from "@xterm/addon-fit"
 import "@xterm/xterm/css/xterm.css"
 import { useEffect, useRef } from "react"
-import {io} from 'socket.io-client'
-import { useParams } from "react-router-dom"
+import { AttachAddon } from "@xterm/addon-attach"  
+import { useTerminalSocketStore } from "../../../store/terminalSocketStore"
 
 
 export const BrowserTerminal= ()=>{
     const TerminalRef=useRef(null)
-    const socket =useRef(null)
-    const {projectId:projectIdFromUrl}=useParams(); 
+    const {terminalSocket}=useTerminalSocketStore();
     useEffect(()=>{
         const term =new Terminal({
             cursorBlink:true,
@@ -20,46 +19,32 @@ export const BrowserTerminal= ()=>{
                 black:"#282a37",
                 red:"#ff5555",
                 green:"#50fa7b",
-                yellow:"#f1fa8c",
-                blue:"#8be9fd",
-                magenta:"#ff79c6",
-                cyan:"#8be9fd",
-                white:"#f8f8f2",
-                brightBlack:"#6272a4",
-                brightRed:"#ff5555",
-                brightGreen:"#50fa7b",
-                brightYellow:"#f1fa8c",
-                brightBlue:"#8be9fd",
-                brightMagenta:"#ff79c6",
-                brightCyan:"#8be9fd",
-                brightWhite:"#f8f8f2",
             },
-            fontSize:16,
-            fontFamily:"ubuntu mono",
-            letterSpacing:0.5,
+            fontSize:14,
+            fontFamily:"fira code,monospace",
             convertEol:true,
+            letterSpacing:0,
+            lineHeight:1.3,
+
         })
         term.open(TerminalRef.current)
         const fitAddon = new FitAddon()
         term.loadAddon(fitAddon)
         fitAddon.fit()
-        socket.current=io(`${import.meta.env.VITE_BACKEND_URL}/terminal`,{
-            query:{
-                projectId:projectIdFromUrl
-            },
-        })
-        socket.current.on("shell-output",(data)=>{
-            term.write(data)
-        })
-        term.onData((data)=>{
-            console.log(data)
-            socket.current.emit("shell-input",data)
-        })
+        // socket.current=io(`${import.meta.env.VITE_BACKEND_URL}/terminal`,{
+        //     query:{
+        //         projectId:projectIdFromUrl
+        //     },
+        // })
+
+        if(terminalSocket){
+            const attachAddon = new AttachAddon(terminalSocket)
+            term.loadAddon(attachAddon)
+        }
         return ()=>{
             term.dispose()
-            socket.current.disconnect()
         }
-    },[])
+    },[terminalSocket])
     return (
         <div
         ref={TerminalRef}

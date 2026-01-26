@@ -1,4 +1,4 @@
-FROM node:18
+FROM node:22
 
 # install system packages
 RUN apt update && apt install -y nano curl \

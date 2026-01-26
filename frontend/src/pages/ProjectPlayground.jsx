@@ -2,18 +2,29 @@ import { useParams } from "react-router-dom";
 import { EditorComponent } from "../components/molecules/EditorComponent/EditorComponent";
 import { EditorButton } from "../components/atoms/EditorButton/EditorButton";
 import { TreeStructure } from "../components/organism/treeStructure/treeStructure";
-import {  useEffect } from "react";
+import {  useEffect, useRef } from "react";
 import { useTreeStructureStore } from "../store/treeStructureStore";
 import { useEditorSocketStore } from "../store/editorSocketStore";
 import {io} from 'socket.io-client'
 import { BrowserTerminal } from "../components/molecules/BrowserTerminal/BrowserTerminal";
+import { useTerminalSocketStore } from "../store/terminalSocketStore";
 
 
 export const ProjectPlayground = () => {
 
 const{projectId:projectIdFromUrl}=useParams();
 const {setProjectId,projectId} = useTreeStructureStore();
-const {setEditorSocket } =useEditorSocketStore();
+const {setEditorSocket ,editorSocket} =useEditorSocketStore();
+const {setTerminalSocket}=useTerminalSocketStore();
+const socket=useRef(null);
+
+
+function fetchPort(){
+    console.log(editorSocket)
+    editorSocket.emit("getPort");
+    console.log("feching port");
+}
+
 
 
 useEffect(()=>{
@@ -24,10 +35,12 @@ useEffect(()=>{
             projectId:projectIdFromUrl
         }
     })
+    socket.current=new WebSocket("ws://localhost:3000/terminal?projectId="+projectIdFromUrl)
+    setTerminalSocket(socket.current);
      setEditorSocket(editorSocketconn);
 }
 
-},[setProjectId,projectIdFromUrl,setEditorSocket])
+},[setProjectId,projectIdFromUrl,setEditorSocket,setTerminalSocket])
     
     return (
         <>
@@ -56,6 +69,13 @@ useEffect(()=>{
        </div>
         <EditorButton isActive={false}/>
         <EditorButton isActive={true}/>
+        <div>
+            <button
+                onClick={fetchPort}
+            >
+                getPort 
+            </button>
+        </div>
         <div>
             <BrowserTerminal/>
         </div>

@@ -3,11 +3,15 @@ import cors from "cors";
 import { Server } from 'socket.io';
 import { createServer } from 'node:http';
 import chokidar from 'chokidar';
+import WebSocket, { WebSocketServer } from 'ws';
+
+
 
 import apiRouter from "./routes/index.js";
 import {PORT} from "./config/serverConfig.js";
 import { handleEditorSocketEvents } from "./socketHandlers/editorHandler.js";
-import { handleContainerCreate } from "./containers/handleContainerCreate.js";
+import { handleContainerCreate, listContainer } from "./containers/handleContainerCreate.js";
+import { handleTerminalCreation } from "./containers/handleTerminalCreation.js";
 
 const app=express();
 const server = createServer(app);
@@ -81,6 +85,10 @@ socket.on("joinFileRoom", ({ path }) => {
     socket.leave(projectId);
     console.log(`left room: ${projectId}`);
   });
+   socket.on("getPort",()=>{
+    console.log("getting port for terminal");
+    listContainer()
+  })
 
 
 handleEditorSocketEvents(socket,editorNamespace);
@@ -89,21 +97,7 @@ handleEditorSocketEvents(socket,editorNamespace);
       await watcher.close();
     console.log('user disconnected');
   });
-})
-const terminalNamespace =io.of('/terminal');
-terminalNamespace.on('connection', (socket) => {
-  console.log('a user connected to terminal');
-    let projectId=socket.handshake.query['projectId'];
-//   socket.on("shell-input",(data)=>{
-//   console.log("input received data",data);
-//   terminalNamespace.emit("shell-output",data);  
-// });
-  socket.on('disconnect', () => {
-    console.log('user disconnected from terminal');
-  });
-
-  handleContainerCreate(projectId,socket);
-})
+});
 
 
 
@@ -111,3 +105,39 @@ terminalNamespace.on('connection', (socket) => {
 server.listen(PORT,()=>{
     console.log(`Server is running on port ${PORT}`);
 });
+
+const webSocketForTerminal= new WebSocketServer({
+  noServer: true,// we will handle the upgrade event manually 
+})
+
+server.on("upgrade",(req,tcpSocket,head)=>{
+  /** 
+   * req:incomming http request
+   * socket: socket object of the connection
+   * head : the first packet of the http request
+   */
+  // this callback will be called the client tris to connect with the sever through websocket 
+
+  const isTerminal=req.url.includes('/terminal');
+  if(isTerminal){
+
+    console.log("request for terminal received",req.url)
+    const projectId=req.url.split('=')[1];
+    console.log("project id received for terminal",projectId)
+    handleContainerCreate(projectId,webSocketForTerminal,req,tcpSocket,head);  
+  }
+    
+})
+webSocketForTerminal.on('connection',(ws,req,container)=>{
+  console.log('a user connected to terminal',ws,req,container); 
+  handleTerminalCreation(container,ws);    
+  ws.on("close",()=>{
+    container.remove({force:true},(err,data)=>{
+      if(err){
+        console.log("error while removing container",err);
+        return;
+      }
+      console.log("container removed successfully",data); 
+    })
+  })
+})  

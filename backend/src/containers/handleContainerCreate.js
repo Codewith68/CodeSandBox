@@ -2,8 +2,18 @@ import Docker from "dockerode";
 
 const docker = new Docker();
 
+export const listContainer=async()=>{
+    const containers=await docker.listContainers();
+    console.log("containers",containers);
 
-export const handleContainerCreate =async(projectId,socket)=>{
+    // print port arrat from all container
+    containers.forEach((containerInfo)=>{
+        const port=containerInfo.Ports;  
+        console.log("port",port);
+    })
+}
+
+export const handleContainerCreate =async(projectId,terminalSocket,req,tcpSocket,head)=>{
     console.log("project ID received for the container create ",projectId);
     try {
         const container = await docker.createContainer({
@@ -12,8 +22,12 @@ export const handleContainerCreate =async(projectId,socket)=>{
         AttachStderr:true,
         AttachStdout:true,
         Tty:true,
-        CMD:['/bin/bash'],
-        USer:'sandbox',
+        Cmd:['/bin/bash'],
+        User:'sandbox',
+        ExposedPorts:{
+                "5173/tcp":{}
+            },
+            Env:["HOST=0.0.0.0"],
         HostConfig:{
             Binds:[ // binding the project directory to the container
                 `${process.cwd()}/projects/${projectId}:/home/sandbox/app`
@@ -24,68 +38,20 @@ export const handleContainerCreate =async(projectId,socket)=>{
                         HostPort:'0' // this will bind the port to any available port on the host machine
                     }
                 ]
-            },
-            exposedPorts:{
-                "5173/tcp":{}
-            },
-            Env:["HOST=0.0.0.0"]
-        }
-})
+            },   
+        } 
+});
             console.log("container created successfully",container.id);
             await container.start();
             console.log("container started successfully");
 
+            //this is the placw where we upgrade the http request to websocket connection
+            terminalSocket.handleUpgrade(req,tcpSocket,head,(establishedWSconn)=>{
+                terminalSocket.emit("connection",establishedWSconn,req,container);
+            });
 
-            container.exec({
-                Cmd: ['/bin/bash'],
-                AttachStdin: true,
-                AttachStdout: true,
-                AttachStderr: true,
-            },(err,exec)=>{
-                if(err){
-                    console.log("error while executing command",err);
-                }
-                exec.start({
-                    hijack: true,
-                    stdin: true,
-                    stdout: true,
-                },(err,stream)=>{
-                    if(err){
-                        console.log("error while starting exec",err);
-                        return;
-                    }
-                    processStream(stream,socket);
-                    socket.on("shell-input",(data)=>{
-                        console.log("input received data",data);
-                        stream.write('pwd\n');
-                    })
-                })
-            })
     } catch (error) {
         console.log("error while creating container",error);
     }
-
-}
-function processStream(stream,socket){
-
-    let buffer= Buffer.from("");
-    stream.on("data",(chunk)=>{
-        buffer=Buffer.concat([buffer,chunk]);
-        socket.emit("shell-output",buffer.toString());
-        buffer= Buffer.from("");
-})
-
-stream.on("end",()=>{
-    console.log("stream ended");
-    socket.emit("shell-output","stream ended");
-})
-
-
-stream.on("error",(err)=>{
-    console.log("error while processing stream",err);
-    socket.emit("shell-output","error while processing stream");    
-    socket.emit("shell-output",err.message);    
-})
-
 
 }
