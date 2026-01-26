@@ -1,25 +1,21 @@
-import './EditorButton.css'
+import './EditorButton.css';
 
+export const EditorButton = ({ isActive }) => {
 
-export const EditorButton = ({isActive}) => {
-
-    function handelClick() {
-
+    function handleClick() {
+        // TODO: Implement click handler
     }
-return(
-  <>
-<button
-      className="editor-button"
-      style={{
-        color: isActive ? 'white' : '#303242',
-        backgroundColor: isActive ? '#303252' : '#4a4859',
-        borderTop:isActive ? '1px solid #f7b9dd' :'none',
-        onClick:{handelClick}
-      }}
-    
-    >
-    file.js
-    </button>
-</>   
-)
+    return (
+        <button
+            className="editor-button"
+            style={{
+                color: isActive ? 'white' : '#959eba',
+                backgroundColor: isActive ? '#303242' : '#4a4859',
+                borderTop: isActive ? '2px solid #f7b9dd' : 'none',
+            }}
+            onClick={handleClick}
+        >
+            file.js
+        </button>
+    )
 }

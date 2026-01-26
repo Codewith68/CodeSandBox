@@ -1,5 +1,7 @@
 
 
+
+
 export const handleTerminalCreation = (container, ws) => {
     container.exec({
         Cmd: ["/bin/bash"],
@@ -27,13 +29,12 @@ export const handleTerminalCreation = (container, ws) => {
             // Step 2: Stream writing
 
             ws.on("message", (data) => {
-                if(data=="getPort"){
-                    container.inspect((err,data)=>{
-                        const port=data.NetworkSettings;
-                        console.log("port",port);
-                        ws.send(port);
+                if(data === "getPort") {
+                    container.inspect((err, data) => {
+                        const port = data.NetworkSettings;
+                        console.log(port);
                     })
-                    return; 
+                    return;
                 }
                 stream.write(data);
             })
@@ -71,12 +72,16 @@ function processStreamOutput(stream, ws) {
             }
         }
     }
+
     function bufferSlicer(end) {
-        // This is a helper function to slice the buffer from the beginning to the given end index
-        const output=buffer.slice(0,end);// head of the buffer
-        buffer=Buffer.from(buffer.slice(end,buffer.length)); // tail of the buffer
+        // this function slices the buffer and returns the sliced buffer and the remaining buffer
+        const output = buffer.slice(0, end); // header of the chunk
+        buffer = Buffer.from(buffer.slice(end, buffer.length)); // remaining part of the chubk
+
         return output;
+
     }
+
     stream.on("data", processStreamData);
 
 }

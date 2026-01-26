@@ -11,8 +11,7 @@ export const TreeStructure = () => {
         file,
         isOpen: isFileContextOpen, 
         x: fileContextX, 
-        y: fileContextY ,
-        isFolder: isFileContextFolder,} = useFileContextMenuStore();
+        y: fileContextY } = useFileContextMenuStore();
 
     useEffect(() => {
         if(treeStructure) {
@@ -24,17 +23,15 @@ export const TreeStructure = () => {
 
     return (
         <>
-        {isFileContextOpen && fileContextX!= null&& fileContextY!= null&& (
+        {isFileContextOpen && fileContextX && fileContextY && (
             <FileContextMenu  
                 x={fileContextX}
                 y={fileContextY}
                 path={file}
-                isFolder={isFileContextFolder}
             />
         )}
             <TreeNode
                 fileFolderData={treeStructure}
-                
             />
         </>
     )

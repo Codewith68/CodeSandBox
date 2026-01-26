@@ -9,55 +9,50 @@ import { useTerminalSocketStore } from "../../../store/terminalSocketStore"
 export const BrowserTerminal= ()=>{
     const TerminalRef=useRef(null)
     const {terminalSocket}=useTerminalSocketStore();
-    useEffect(()=>{
-        const term =new Terminal({
-            cursorBlink:true,
-            theme:{
-                background:"#282a37",
-                foreground:"#f8f8f2",
-                cursor:"#f8f8f2",
-                black:"#282a37",
-                red:"#ff5555",
-                green:"#50fa7b",
-            },
-            fontSize:14,
-            fontFamily:"fira code,monospace",
-            convertEol:true,
-            letterSpacing:0,
-            lineHeight:1.3,
+    useEffect(() => {
+  if (!TerminalRef.current || !terminalSocket) return;
 
-        })
-        term.open(TerminalRef.current)
-        const fitAddon = new FitAddon()
-        term.loadAddon(fitAddon)
-        fitAddon.fit()
-        // socket.current=io(`${import.meta.env.VITE_BACKEND_URL}/terminal`,{
-        //     query:{
-        //         projectId:projectIdFromUrl
-        //     },
-        // })
+  const term = new Terminal({
+    cursorBlink: true,
+    fontSize: 14,
+    fontFamily: "Fira Code, monospace",
+    convertEol: true,
+    letterSpacing: 0,
+    fontWeight: 400,
+    theme: {
+      background: "#282a37",
+      foreground: "#f8f8f2",
+    },
+  });
 
-        if(terminalSocket){
-            const attachAddon = new AttachAddon(terminalSocket)
-            term.loadAddon(attachAddon)
+  const fitAddon = new FitAddon();
+  term.loadAddon(fitAddon);
+  term.open(TerminalRef.current);
+  fitAddon.fit();
+
+  if(terminalSocket) {
+            terminalSocket.onopen = () => {
+                const attachAddon = new AttachAddon(terminalSocket);
+                term.loadAddon(attachAddon);
+                // socket.current = ws;
+            }
         }
-        return ()=>{
-            term.dispose()
-        }
-    },[terminalSocket])
-    return (
+
+
+  return () => {
+    term.dispose();
+  };
+}, [terminalSocket]);
+
+     return (
         <div
-        ref={TerminalRef}
-        style={{
-                height:"25vh",
-                overflow:"auto",
-
-        }}
-        className="terminal"
-        id="terminal-container"
-        
+            ref={TerminalRef}
+            style={{
+                width: "100vw",
+            }}
+            className='terminal'
+            id="terminal-container"
         >
-
 
         </div>
     )
