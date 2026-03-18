@@ -88,19 +88,28 @@ export const handleContainerCreate = async (projectId, terminalSocket, req, tcpS
 
 
 export async function getContainerPort(containerName) {
-    const container = await docker.listContainers({
-        name: containerName
-    });
+    try {
+        const containers = await docker.listContainers({
+            filters: { name: [containerName] }
+        });
 
-    if(container.length > 0) {
-        const containerInfo = await docker.getContainer(container[0].Id).inspect();
-        console.log("Container info", containerInfo);
-        try {
-            return containerInfo?.NetworkSettings?.Ports["5173/tcp"][0].HostPort;
-        } catch(error) {
-            console.log("port not present");
+        if (containers.length === 0) {
+            console.log(`No container found with name: ${containerName}`);
             return undefined;
         }
-        
+
+        const containerInfo = await docker.getContainer(containers[0].Id).inspect();
+        const ports = containerInfo?.NetworkSettings?.Ports;
+
+        // Check for Vite's default port 5173
+        if (ports?.["5173/tcp"]?.[0]?.HostPort) {
+            return ports["5173/tcp"][0].HostPort;
+        }
+
+        console.log("Port 5173 not yet bound, container may still be starting...");
+        return undefined;
+    } catch (error) {
+        console.error("Error fetching container port:", error.message);
+        return undefined;
     }
 }

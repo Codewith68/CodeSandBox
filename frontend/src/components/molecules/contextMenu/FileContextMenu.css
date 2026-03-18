@@ -1,36 +1,110 @@
-.fileContextButton{
-    color:white;
-    border:none;
-    outline:none;
-    width:100%;
-    height:30px;
-    background-color:#363545;
-    padding: 5px;
+/* ═══════════════════════════════════════════════════════════
+   FileContextMenu.css — Modern Context Menu
+   ═══════════════════════════════════════════════════════════ */
+
+.context-menu {
+    display: flex;
+    flex-direction: column;
+    min-width: 180px;
+    background: #1e1f2e;
+    border: 1px solid rgba(255, 255, 255, 0.08);
+    border-radius: 8px;
+    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.5);
+    z-index: 9999;
+    padding: 0.3rem;
+    overflow: hidden;
+    animation: contextFadeIn 0.15s ease-out;
 }
 
-.fileContextButton:hover{
-    background-color:#5c5b6e;
+@keyframes contextFadeIn {
+    from {
+        opacity: 0;
+        transform: scale(0.95) translateY(-4px);
+    }
+    to {
+        opacity: 1;
+        transform: scale(1) translateY(0);
+    }
 }
 
-.fileContextButton:active{
-    background-color:#2e2d3d;
+.context-menu-item {
+    display: flex;
+    align-items: center;
+    gap: 0.6rem;
+    width: 100%;
+    padding: 0.5rem 0.75rem;
+    border: none;
+    background: transparent;
+    color: #cbd5e1;
+    font-size: 0.8rem;
+    font-family: inherit;
+    cursor: pointer;
+    border-radius: 5px;
+    transition: all 0.1s ease;
+    text-align: left;
 }
 
-.fileContextButton:focus{
-    outline:none;
+.context-menu-item:hover {
+    background: rgba(99, 102, 241, 0.12);
+    color: #e2e8f0;
 }
 
-.fileContextButton:disabled{
-    background-color:#363545;
-    color:gray;
+.context-menu-item.danger:hover {
+    background: rgba(239, 68, 68, 0.12);
+    color: #fca5a5;
 }
 
-.fileContextOptionsWrapper{
-    display:flex;
-    flex-direction:column;
-    background-color:#363545;
-    border-radius:5px;
-    box-shadow: 0px 0px 10px rgba(0,0,0,0.5);
-    z-index:1000;
-}   
+.context-menu-icon {
+    font-size: 0.85rem;
+    width: 18px;
+    text-align: center;
+}
 
+.context-menu-rename {
+    display: flex;
+    align-items: center;
+    gap: 0.25rem;
+    padding: 0.3rem;
+    margin-top: 0.15rem;
+}
+
+.context-menu-input {
+    flex: 1;
+    padding: 0.35rem 0.5rem;
+    background: rgba(255, 255, 255, 0.06);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    border-radius: 5px;
+    color: #e2e8f0;
+    font-size: 0.78rem;
+    font-family: inherit;
+    outline: none;
+    transition: border-color 0.2s ease;
+}
+
+.context-menu-input:focus {
+    border-color: rgba(99, 102, 241, 0.4);
+}
+
+.context-menu-input::placeholder {
+    color: #475569;
+}
+
+.context-menu-rename-btn {
+    width: 28px;
+    height: 28px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: rgba(99, 102, 241, 0.15);
+    border: 1px solid rgba(99, 102, 241, 0.2);
+    border-radius: 5px;
+    color: #a5b4fc;
+    cursor: pointer;
+    font-size: 0.8rem;
+    transition: all 0.15s ease;
+}
+
+.context-menu-rename-btn:hover {
+    background: rgba(99, 102, 241, 0.25);
+    color: white;
+}

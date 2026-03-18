@@ -1,0 +1,203 @@
+/* ═══════════════════════════════════════════════════════════
+   ProjectPlayground.css — IDE Layout Styling
+   ═══════════════════════════════════════════════════════════ */
+
+/* ── Main Layout ───────────────────────────────────────── */
+.playground-container {
+    display: flex;
+    flex-direction: column;
+    height: 100vh;
+    background: #0f1117;
+    overflow: hidden;
+    font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+}
+
+/* ── Top Nav Bar ───────────────────────────────────────── */
+.playground-topbar {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    height: 42px;
+    min-height: 42px;
+    padding: 0 1rem;
+    background: #16171f;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.06);
+    z-index: 100;
+}
+
+.topbar-brand {
+    display: flex;
+    align-items: center;
+    gap: 0.6rem;
+}
+
+.topbar-logo {
+    width: 24px;
+    height: 24px;
+    background: linear-gradient(135deg, #6366f1, #8b5cf6);
+    border-radius: 6px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 0.7rem;
+    color: white;
+    font-weight: 700;
+}
+
+.topbar-title {
+    font-size: 0.85rem;
+    font-weight: 600;
+    color: #e2e8f0;
+    letter-spacing: -0.01em;
+}
+
+.topbar-title span {
+    color: #6366f1;
+}
+
+.topbar-project-name {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    font-size: 0.8rem;
+    color: #94a3b8;
+    padding: 0.25rem 0.75rem;
+    background: rgba(255, 255, 255, 0.04);
+    border-radius: 6px;
+    border: 1px solid rgba(255, 255, 255, 0.06);
+}
+
+.topbar-actions {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+}
+
+.topbar-status {
+    display: flex;
+    align-items: center;
+    gap: 0.4rem;
+    font-size: 0.75rem;
+    color: #64748b;
+}
+
+.status-dot {
+    width: 7px;
+    height: 7px;
+    border-radius: 50%;
+    background: #22c55e;
+    animation: statusPulse 2s ease infinite;
+}
+
+.status-dot.disconnected {
+    background: #ef4444;
+    animation: none;
+}
+
+@keyframes statusPulse {
+    0%, 100% { opacity: 1; }
+    50% { opacity: 0.4; }
+}
+
+/* ── Main Content Area ─────────────────────────────────── */
+.playground-main {
+    display: flex;
+    flex: 1;
+    overflow: hidden;
+}
+
+/* ── Sidebar / File Explorer ───────────────────────────── */
+.playground-sidebar {
+    width: 260px;
+    min-width: 200px;
+    max-width: 380px;
+    background: #13141b;
+    border-right: 1px solid rgba(255, 255, 255, 0.06);
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+}
+
+/* ── Editor Area ───────────────────────────────────────── */
+.playground-editor-area {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+    min-width: 0;
+}
+
+/* ── Right Panel (Browser Preview) ─────────────────────── */
+.playground-preview-area {
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+    min-width: 0;
+}
+
+/* ── Status Bar ────────────────────────────────────────── */
+.playground-statusbar {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    height: 26px;
+    min-height: 26px;
+    padding: 0 0.75rem;
+    background: #6366f1;
+    font-size: 0.7rem;
+    color: rgba(255, 255, 255, 0.9);
+    z-index: 100;
+}
+
+.statusbar-left,
+.statusbar-right {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+}
+
+.statusbar-item {
+    display: flex;
+    align-items: center;
+    gap: 0.3rem;
+    opacity: 0.85;
+}
+
+/* ── Loading State ─────────────────────────────────────── */
+.playground-loading {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    height: 100vh;
+    background: #0f1117;
+    gap: 1.5rem;
+}
+
+.loading-spinner {
+    width: 40px;
+    height: 40px;
+    border: 3px solid rgba(99, 102, 241, 0.15);
+    border-top-color: #6366f1;
+    border-radius: 50%;
+    animation: spin 0.8s linear infinite;
+}
+
+@keyframes spin {
+    to { transform: rotate(360deg); }
+}
+
+.loading-text {
+    color: #94a3b8;
+    font-size: 0.9rem;
+    font-weight: 500;
+}
+
+/* ── Allotment Overrides ───────────────────────────────── */
+.playground-main .sash-container .sash {
+    background: rgba(255, 255, 255, 0.06) !important;
+}
+
+.playground-main .sash-container .sash:hover {
+    background: #6366f1 !important;
+}

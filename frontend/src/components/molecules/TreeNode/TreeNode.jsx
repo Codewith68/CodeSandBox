@@ -1,17 +1,14 @@
-import { useEffect, useState } from "react";
-import { IoIosArrowDown, IoIosArrowForward } from "react-icons/io";
-import { FileIcon } from "../../atoms/FileIcon/Fileicon";
+import { useState } from "react";
+import { FileIcon } from "../../atoms/fileIcon/FileIcon";
 import { useEditorSocketStore } from "../../../store/editorSocketStore";
+import { useActiveFileTabStore } from "../../../store/activeFileTabStore";
 import { useFileContextMenuStore } from "../../../store/fileContextMenuStore";
+import "./TreeNode.css";
 
-export const TreeNode = ({
-    fileFolderData
-}) => {
-
-    const [visibility, setVisibility] = useState({});
-
+export const TreeNode = ({ fileFolderData, depth = 0 }) => {
+    const [isOpen, setIsOpen] = useState(false);
     const { editorSocket } = useEditorSocketStore();
-
+    const { activeFileTab } = useActiveFileTabStore();
     const {
         setFile,
         setIsOpen: setFileContextMenuIsOpen,
@@ -20,98 +17,67 @@ export const TreeNode = ({
         setFolder,
     } = useFileContextMenuStore();
 
-    function toggleVisibility(name) {
-        setVisibility({
-            ...visibility,
-            [name]: !visibility[name]
-        })
+    if (!fileFolderData) return null;
+
+    const isFolder = !!fileFolderData.children;
+    const fileName = fileFolderData.name;
+    const extension = fileName.includes(".") ? fileName.split(".").pop() : "";
+    const isActive = activeFileTab?.path === fileFolderData.path;
+
+    function handleFileClick() {
+        editorSocket?.emit("readFile", {
+            pathToFileOrFolder: fileFolderData.path,
+        });
     }
 
-
-    function computeExtension(fileFolderData) {
-        const names = fileFolderData.name.split(".");
-        return names[names.length - 1];
-    }
-
-    function handleDoubleClick(fileFolderData) {
-        console.log("Double clicked on", fileFolderData);
-        editorSocket.emit("readFile", {
-            pathToFileOrFolder: fileFolderData.path
-        })
-    }
-
-    function handleContextMenuForFiles(e, path) {
+    function handleContextMenu(e) {
         e.preventDefault();
-        console.log("Right clicked on", path, e);
-        setFile(path);
+        e.stopPropagation();
+        setFile(fileFolderData.path);
         setFileContextMenuX(e.clientX);
         setFileContextMenuY(e.clientY);
-        setFolder(!!fileFolderData.children);
+        setFolder(isFolder);
         setFileContextMenuIsOpen(true);
-    }   
+    }
 
-    useEffect(() => {
-        console.log("Visibility changed", visibility); 
-    }, [visibility])
+    if (isFolder) {
+        return (
+            <div className="tree-node">
+                <button
+                    className="tree-node-folder"
+                    style={{ "--depth": depth }}
+                    onClick={() => setIsOpen(!isOpen)}
+                    onContextMenu={handleContextMenu}
+                >
+                    <span className={`folder-arrow ${isOpen ? "open" : ""}`}>▶</span>
+                    <span className="folder-name">{fileName}</span>
+                </button>
+                {isOpen && fileFolderData.children && (
+                    <div className="tree-children">
+                        {fileFolderData.children.map((child) => (
+                            <TreeNode
+                                key={child.name}
+                                fileFolderData={child}
+                                depth={depth + 1}
+                            />
+                        ))}
+                    </div>
+                )}
+            </div>
+        );
+    }
 
     return (
-        ( fileFolderData && 
         <div
-            style={{
-                paddingLeft: "15px",
-                color: "white"
-            }}
+            className={`tree-node-file ${isActive ? "active" : ""}`}
+            style={{ "--depth": depth }}
+            onDoubleClick={handleFileClick}
+            onContextMenu={handleContextMenu}
         >
-            {fileFolderData.children /** If the current node is a folder ? */ ? (
-                /** If the current node is a folder, render it as a button */
-                <button
-                    onClick={() => toggleVisibility(fileFolderData.name)}
-                    style={{
-                        border: "none",
-                        cursor: "pointer",
-                        outline: "none",
-                        color: "white",
-                        backgroundColor: "transparent",
-                        padding: "15px",
-                        fontSize: "16px",
-                        marginTop: "10px"
-
-                    }}
-                >
-                    {visibility[fileFolderData.name] ? <IoIosArrowDown /> : <IoIosArrowForward />}
-                    {fileFolderData.name}
-                </button>
-            ) : (
-                /** If the current node is not a folder, render it as a p */
-                <div style={{ display: "flex", alignItems: "center",justifyContent:"start" }}>
-                    <FileIcon extension={computeExtension(fileFolderData)} />
-                    <p
-                        style={{
-                            paddingTop: "15px",
-                            paddingBottom: "15px",
-                            marginTop: "8px",
-                            fontSize: "15px",
-                            cursor: "pointer",
-                            marginLeft: "5px",
-
-                            // color: "black"
-                        }}
-                        onContextMenu={(e) => handleContextMenuForFiles(e, fileFolderData.path)}
-                        onDoubleClick={() => handleDoubleClick(fileFolderData)}
-                    >
-                        {fileFolderData.name}
-                    </p>
-                </div>
-            )}
-            {visibility[fileFolderData.name] && fileFolderData.children && (
-                fileFolderData.children.map((child) => (
-                    <TreeNode 
-                        fileFolderData={child}
-                        key={child.name}
-                    />
-                ))
-            )}
-
-        </div>)
-    )
-}
+            <span className="file-icon-wrapper">
+                <FileIcon extension={extension} />
+            </span>
+            <span className="file-name">{fileName}</span>
+        </div>
+    );
+};

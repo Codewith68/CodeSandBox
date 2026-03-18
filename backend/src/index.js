@@ -10,6 +10,14 @@ import { handleEditorSocketEvents } from './socketHandlers/editorHandler.js';
 
 const app = express();
 const server = createServer(app);
+
+// Catch unhandled errors to prevent silent crashes
+process.on('uncaughtException', (err) => {
+    console.error('UNCAUGHT EXCEPTION:', err);
+});
+process.on('unhandledRejection', (err) => {
+    console.error('UNHANDLED REJECTION:', err);
+});
 const io = new Server(server, {
     cors: {
         origin: '*',
@@ -18,9 +26,9 @@ const io = new Server(server, {
 });
 
 
-app.use(express.json());
-app.use(express.urlencoded());
 app.use(cors());
+app.use(express.json());
+app.use(express.urlencoded({ extended: true }));
 
 app.use('/api', apiRouter);
 
@@ -57,7 +65,13 @@ editorNamespace.on("connection", (socket) => {
 
 });
 
+// Global error handler (Express 5 requires 4 args)
+app.use((err, req, res, next) => {
+    console.error('EXPRESS ERROR:', err.stack || err);
+    res.status(500).json({ message: 'Internal server error', error: err.message });
+});
+
 server.listen(PORT, () => {
     console.log(`Server is running on port ${PORT}`);
-    console.log(process.cwd())
+    console.log(process.cwd());
 });

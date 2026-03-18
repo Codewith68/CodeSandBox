@@ -1,0 +1,98 @@
+/* ═══════════════════════════════════════════════════════════
+   FileTabBar.css — VS Code-Style Editor Tabs
+   ═══════════════════════════════════════════════════════════ */
+
+.file-tab-bar {
+    display: flex;
+    align-items: flex-end;
+    background: #16171f;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.06);
+    overflow-x: auto;
+    scrollbar-width: none;
+    min-height: 36px;
+}
+
+.file-tab-bar::-webkit-scrollbar {
+    display: none;
+}
+
+.file-tab {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    padding: 0.45rem 0.75rem;
+    font-size: 0.78rem;
+    color: #64748b;
+    background: transparent;
+    border: none;
+    border-right: 1px solid rgba(255, 255, 255, 0.04);
+    cursor: pointer;
+    transition: all 0.15s ease;
+    white-space: nowrap;
+    min-width: 0;
+    font-family: inherit;
+    position: relative;
+}
+
+.file-tab:hover {
+    color: #94a3b8;
+    background: rgba(255, 255, 255, 0.03);
+}
+
+.file-tab.active {
+    color: #e2e8f0;
+    background: #1e1f2e;
+}
+
+.file-tab.active::after {
+    content: '';
+    position: absolute;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    height: 2px;
+    background: #6366f1;
+}
+
+.file-tab-icon {
+    flex-shrink: 0;
+}
+
+.file-tab-name {
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.file-tab-close {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 16px;
+    height: 16px;
+    border-radius: 3px;
+    border: none;
+    background: transparent;
+    color: #64748b;
+    font-size: 0.65rem;
+    cursor: pointer;
+    opacity: 0;
+    transition: all 0.15s ease;
+    flex-shrink: 0;
+    font-family: inherit;
+}
+
+.file-tab:hover .file-tab-close,
+.file-tab.active .file-tab-close {
+    opacity: 1;
+}
+
+.file-tab-close:hover {
+    background: rgba(255, 255, 255, 0.1);
+    color: #e2e8f0;
+}
+
+.file-tab-empty {
+    flex: 1;
+    min-height: 36px;
+    background: #16171f;
+}

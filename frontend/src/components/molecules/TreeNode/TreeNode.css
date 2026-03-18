@@ -1,0 +1,96 @@
+/* ═══════════════════════════════════════════════════════════
+   TreeNode.css — File Tree Node Styling
+   ═══════════════════════════════════════════════════════════ */
+
+.tree-node {
+    user-select: none;
+}
+
+.tree-node-folder {
+    display: flex;
+    align-items: center;
+    gap: 0.35rem;
+    padding: 0.3rem 0.5rem 0.3rem calc(var(--depth, 0) * 12px + 8px);
+    color: #cbd5e1;
+    background: transparent;
+    border: none;
+    cursor: pointer;
+    font-size: 0.82rem;
+    font-family: inherit;
+    width: 100%;
+    text-align: left;
+    transition: background 0.1s ease;
+    outline: none;
+}
+
+.tree-node-folder:hover {
+    background: rgba(255, 255, 255, 0.04);
+}
+
+.tree-node-folder:active {
+    background: rgba(255, 255, 255, 0.06);
+}
+
+.folder-arrow {
+    font-size: 0.65rem;
+    color: #64748b;
+    transition: transform 0.15s ease;
+    flex-shrink: 0;
+    width: 14px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.folder-arrow.open {
+    transform: rotate(90deg);
+}
+
+.folder-name {
+    color: #e2e8f0;
+    font-weight: 500;
+}
+
+/* ── File Node ─────────────────────────────────────────── */
+.tree-node-file {
+    display: flex;
+    align-items: center;
+    gap: 0.4rem;
+    padding: 0.3rem 0.5rem 0.3rem calc(var(--depth, 0) * 12px + 22px);
+    cursor: pointer;
+    transition: background 0.1s ease;
+    border-radius: 0;
+}
+
+.tree-node-file:hover {
+    background: rgba(255, 255, 255, 0.04);
+}
+
+.tree-node-file.active {
+    background: rgba(99, 102, 241, 0.12);
+}
+
+.file-icon-wrapper {
+    flex-shrink: 0;
+    display: flex;
+    align-items: center;
+}
+
+.file-name {
+    font-size: 0.82rem;
+    color: #94a3b8;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.tree-node-file:hover .file-name,
+.tree-node-file.active .file-name {
+    color: #e2e8f0;
+}
+
+/* ── Children Container ────────────────────────────────── */
+.tree-children {
+    overflow: hidden;
+    transition: max-height 0.2s ease-out;
+}

@@ -1,110 +1,122 @@
 import fs from "fs/promises";
+import path from "path";
 import { getContainerPort } from "../containers/handleContainerCreate.js";
 
 export const handleEditorSocketEvents = (socket, editorNamespace) => {
+
+    // ── Write File ──────────────────────────────────────────
     socket.on("writeFile", async ({ data, pathToFileOrFolder }) => {
         try {
-            const response = await fs.writeFile(pathToFileOrFolder, data);
+            await fs.writeFile(pathToFileOrFolder, data);
             editorNamespace.emit("writeFileSuccess", {
                 data: "File written successfully",
                 path: pathToFileOrFolder,
-            })
-        } catch(error) {
-            console.log("Error writing the file", error);
-            socket.emit("error", {
-                data: "Error writing the file",
             });
+        } catch (error) {
+            console.error("Error writing file:", error.message);
+            socket.emit("error", { data: `Error writing file: ${error.message}` });
         }
     });
 
-
+    // ── Create File ─────────────────────────────────────────
     socket.on("createFile", async ({ pathToFileOrFolder }) => {
-        const isFileAlreadyPresent = await fs.stat(pathToFileOrFolder);
-        if(isFileAlreadyPresent) {
-            socket.emit("error", {
-                data: "File already exists",
-            });
-            return;
-        }
-
         try {
-            const response = await fs.writeFile(pathToFileOrFolder, "");
+            // Check if file already exists
+            try {
+                await fs.access(pathToFileOrFolder);
+                socket.emit("error", { data: "File already exists" });
+                return;
+            } catch {
+                // File doesn't exist — good, create it
+            }
+
+            await fs.writeFile(pathToFileOrFolder, "");
             socket.emit("createFileSuccess", {
                 data: "File created successfully",
             });
-        } catch(error) {
-            console.log("Error creating the file", error);
-            socket.emit("error", {
-                data: "Error creating the file",
-            });
+            // Notify all clients to refresh tree
+            editorNamespace.emit("treeStructureUpdate");
+        } catch (error) {
+            console.error("Error creating file:", error.message);
+            socket.emit("error", { data: `Error creating file: ${error.message}` });
         }
     });
 
-
+    // ── Read File ───────────────────────────────────────────
     socket.on("readFile", async ({ pathToFileOrFolder }) => {
         try {
-            const response = await fs.readFile(pathToFileOrFolder);
-            console.log(response.toString());
+            const content = await fs.readFile(pathToFileOrFolder, "utf-8");
             socket.emit("readFileSuccess", {
-                value: response.toString(),
+                value: content,
                 path: pathToFileOrFolder,
-            })
-        } catch(error) {
-            console.log("Error reading the file", error);
-            socket.emit("error", {
-                data: "Error reading the file",
             });
+        } catch (error) {
+            console.error("Error reading file:", error.message);
+            socket.emit("error", { data: `Error reading file: ${error.message}` });
         }
     });
 
+    // ── Delete File ─────────────────────────────────────────
     socket.on("deleteFile", async ({ pathToFileOrFolder }) => {
         try {
-            const response = await fs.unlink(pathToFileOrFolder);
+            await fs.unlink(pathToFileOrFolder);
             socket.emit("deleteFileSuccess", {
                 data: "File deleted successfully",
             });
-        } catch(error) {
-            console.log("Error deleting the file", error);
-            socket.emit("error", {
-                data: "Error deleting the file",
-            });
+            editorNamespace.emit("treeStructureUpdate");
+        } catch (error) {
+            console.error("Error deleting file:", error.message);
+            socket.emit("error", { data: `Error deleting file: ${error.message}` });
         }
     });
 
-    socket.on("createFolder", async ({ pathToFileOrFolder}) => {
+    // ── Rename File or Folder ───────────────────────────────
+    socket.on("renameFileOrFolder", async ({ oldPath, newPath }) => {
         try {
-            const response = await fs.mkdir(pathToFileOrFolder);
+            await fs.rename(oldPath, newPath);
+            socket.emit("renameFileOrFolderSuccess", {
+                data: "Renamed successfully",
+                oldPath,
+                newPath,
+            });
+            editorNamespace.emit("treeStructureUpdate");
+        } catch (error) {
+            console.error("Error renaming:", error.message);
+            socket.emit("error", { data: `Error renaming: ${error.message}` });
+        }
+    });
+
+    // ── Create Folder ───────────────────────────────────────
+    socket.on("createFolder", async ({ pathToFileOrFolder }) => {
+        try {
+            await fs.mkdir(pathToFileOrFolder, { recursive: true });
             socket.emit("createFolderSuccess", {
                 data: "Folder created successfully",
             });
-        } catch(error) {
-            console.log("Error creating the folder", error);
-            socket.emit("error", {
-                data: "Error creating the folder",
-            });
+            editorNamespace.emit("treeStructureUpdate");
+        } catch (error) {
+            console.error("Error creating folder:", error.message);
+            socket.emit("error", { data: `Error creating folder: ${error.message}` });
         }
     });
 
+    // ── Delete Folder ───────────────────────────────────────
     socket.on("deleteFolder", async ({ pathToFileOrFolder }) => {
         try {
-            const response = await fs.rmdir(pathToFileOrFolder, { recursive: true });
+            await fs.rm(pathToFileOrFolder, { recursive: true, force: true });
             socket.emit("deleteFolderSuccess", {
                 data: "Folder deleted successfully",
             });
-        } catch(error) {
-            console.log("Error deleting the folder", error);
-            socket.emit("error", {
-                data: "Error deleting the folder",
-            });
+            editorNamespace.emit("treeStructureUpdate");
+        } catch (error) {
+            console.error("Error deleting folder:", error.message);
+            socket.emit("error", { data: `Error deleting folder: ${error.message}` });
         }
     });
 
+    // ── Get Container Port ──────────────────────────────────
     socket.on("getPort", async ({ containerName }) => {
         const port = await getContainerPort(containerName);
-        console.log("port data", port);
-        socket.emit("getPortSuccess", {
-            port: port,
-        })
-    })
-
-}
+        socket.emit("getPortSuccess", { port });
+    });
+};
