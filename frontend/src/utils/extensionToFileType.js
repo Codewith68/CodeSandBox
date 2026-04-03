@@ -8,7 +8,13 @@ const extensionToTypeMap={
     'scss': 'scss',
     'json': 'json',
     'md': 'markdown',
-    'txt': 'text',
+    'txt': 'plaintext',
+    'xml': 'xml',
+    'yaml': 'yaml',
+    'yml': 'yaml',
+    'sh': 'shell',
+    'bash': 'shell',
+    'svg': 'xml',
 }
 
 export const extensionToFileType = (extension) => {

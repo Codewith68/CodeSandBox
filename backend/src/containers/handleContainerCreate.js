@@ -69,11 +69,28 @@ export const handleContainerCreate = async (projectId, terminalSocket, req, tcpS
 
         console.log("container started");
 
-        // Below is the place where we upgrade the connection to websocket
-        // terminalSocket.handleUpgrade(req, tcpSocket, head, (establishedWSConn) => {
-        //     console.log("Connection upgraded to websocket");
-        //     terminalSocket.emit("connection", establishedWSConn, req, container);
-        // });
+        // Auto-start Vite dev server inside the container
+        try {
+            const exec = await container.exec({
+                Cmd: ['/bin/bash', '-c', 'cd /home/sandbox/app/sandbox && npm run dev'],
+                AttachStdout: true,
+                AttachStderr: true,
+                Tty: false,
+                User: 'sandbox',
+            });
+            exec.start({ hijack: true }, (err, stream) => {
+                if (err) {
+                    console.error("Failed to auto-start Vite:", err.message);
+                    return;
+                }
+                console.log("Vite dev server auto-started in container");
+                stream.on('data', (chunk) => {
+                    console.log("[vite]", chunk.toString().trim());
+                });
+            });
+        } catch (err) {
+            console.error("Failed to exec Vite in container:", err.message);
+        }
 
         return container;
 

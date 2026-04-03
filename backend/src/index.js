@@ -71,6 +71,17 @@ app.use((err, req, res, next) => {
     res.status(500).json({ message: 'Internal server error', error: err.message });
 });
 
+server.on('error', (err) => {
+    if (err.code === 'EADDRINUSE') {
+        console.error(`\n❌ Port ${PORT} is already in use!`);
+        console.error(`   Run: taskkill /F /IM node.exe   (to kill stale processes)`);
+        console.error(`   Or change PORT in .env\n`);
+    } else {
+        console.error('SERVER ERROR:', err);
+    }
+    process.exit(1);
+});
+
 server.listen(PORT, () => {
     console.log(`Server is running on port ${PORT}`);
     console.log(process.cwd());

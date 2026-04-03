@@ -22,20 +22,58 @@ export const EditorComponent = () => {
             monaco.editor.defineTheme("codeforge-dark", themeData);
             monaco.editor.setTheme("codeforge-dark");
         }
+
+        // Enable JSX support for JavaScript and TypeScript
+        monaco.languages.typescript.javascriptDefaults.setCompilerOptions({
+            jsx: monaco.languages.typescript.JsxEmit.ReactJSX,
+            target: monaco.languages.typescript.ScriptTarget.ESNext,
+            allowNonTsExtensions: true,
+            moduleResolution: monaco.languages.typescript.ModuleResolutionKind.NodeJs,
+            module: monaco.languages.typescript.ModuleKind.ESNext,
+            allowJs: true,
+            esModuleInterop: true,
+        });
+
+        monaco.languages.typescript.typescriptDefaults.setCompilerOptions({
+            jsx: monaco.languages.typescript.JsxEmit.ReactJSX,
+            target: monaco.languages.typescript.ScriptTarget.ESNext,
+            allowNonTsExtensions: true,
+            moduleResolution: monaco.languages.typescript.ModuleResolutionKind.NodeJs,
+            module: monaco.languages.typescript.ModuleKind.ESNext,
+            esModuleInterop: true,
+        });
+
+        // Suppress some noisy diagnostics for a sandbox environment
+        monaco.languages.typescript.javascriptDefaults.setDiagnosticsOptions({
+            noSemanticValidation: false,
+            noSyntaxValidation: false,
+        });
     }
 
     function handleChange(value) {
+        // Immediately update the tab store so switching tabs preserves edits
+        const { activeFileTab: currentTab, openTabs } = useActiveFileTabStore.getState();
+        if (currentTab?.path) {
+            useActiveFileTabStore.setState({
+                activeFileTab: { ...currentTab, value },
+                openTabs: openTabs.map((t) =>
+                    t.path === currentTab.path ? { ...t, value } : t
+                ),
+            });
+        }
+
+        // Debounce the actual file write to disk (via socket)
         if (timerRef.current) {
             clearTimeout(timerRef.current);
         }
         timerRef.current = setTimeout(() => {
-            if (editorSocket && activeFileTab?.path) {
+            if (editorSocket && currentTab?.path) {
                 editorSocket.emit("writeFile", {
                     data: value,
-                    pathToFileOrFolder: activeFileTab.path,
+                    pathToFileOrFolder: currentTab.path,
                 });
             }
-        }, 1500);
+        }, 1000);
     }
 
     if (!themeData) {

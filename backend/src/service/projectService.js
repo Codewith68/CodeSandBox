@@ -38,6 +38,32 @@ export const createProjectService = async () => {
         console.error("Failed to modify package.json:", err.message);
     }
 
+    // Overwrite vite.config.js to enable polling (Docker on Windows doesn't
+    // propagate filesystem events) and configure HMR WebSocket
+    try {
+        const viteConfigPath = path.join(projectPath, 'sandbox', 'vite.config.js');
+        const viteConfig = `import { defineConfig } from 'vite'
+import react from '@vitejs/plugin-react'
+
+export default defineConfig({
+  plugins: [react()],
+  server: {
+    host: '0.0.0.0',
+    port: 5173,
+    watch: {
+      usePolling: true,
+      interval: 300,
+    },
+    hmr: true,
+  },
+})
+`;
+        await fs.writeFile(viteConfigPath, viteConfig);
+        console.log("Updated vite.config.js with polling and HMR settings");
+    } catch (err) {
+        console.error("Failed to modify vite.config.js:", err.message);
+    }
+
     // Install dependencies so they're ready when the container starts
     console.log("Installing dependencies...");
     const installResult = await execPromisified('npm install', {
