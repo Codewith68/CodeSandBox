@@ -1,27 +1,60 @@
 import Editor from "@monaco-editor/react";
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useRef, useState, useCallback } from "react";
 import { useActiveFileTabStore } from "../../../store/activeFileTabStore";
 import { useEditorSocketStore } from "../../../store/editorSocketStore";
+import { useSettingsStore } from "../../../store/settingsStore";
 import { extensionToFileType } from "../../../utils/extensionToFileType";
 
 export const EditorComponent = () => {
     const timerRef = useRef(null);
-    const [themeData, setThemeData] = useState(null);
+    const monacoRef = useRef(null);
+    const [themeLoaded, setThemeLoaded] = useState(false);
+
     const { activeFileTab } = useActiveFileTabStore();
     const { editorSocket } = useEditorSocketStore();
 
+    // Read settings reactively
+    const fontSize = useSettingsStore((s) => s.fontSize);
+    const fontFamily = useSettingsStore((s) => s.fontFamily);
+    const wordWrap = useSettingsStore((s) => s.wordWrap);
+    const minimap = useSettingsStore((s) => s.minimap);
+    const fontLigatures = useSettingsStore((s) => s.fontLigatures);
+    const lineNumbers = useSettingsStore((s) => s.lineNumbers);
+    const tabSize = useSettingsStore((s) => s.tabSize);
+    const themeName = useSettingsStore((s) => s.theme);
+    const themeFile = useSettingsStore((s) => s.themeFile);
+    const autoSave = useSettingsStore((s) => s.autoSave);
+    const autoSaveDelay = useSettingsStore((s) => s.autoSaveDelay);
+
+    // Load and apply theme
     useEffect(() => {
-        fetch("/dark.json")
+        fetch(themeFile)
             .then((res) => res.json())
-            .then((data) => setThemeData(data))
-            .catch((err) => console.error("Failed to load editor theme:", err));
-    }, []);
+            .then((data) => {
+                if (monacoRef.current) {
+                    monacoRef.current.editor.defineTheme(themeName, data);
+                    monacoRef.current.editor.setTheme(themeName);
+                }
+                setThemeLoaded(true);
+            })
+            .catch((err) => {
+                console.error("Failed to load editor theme:", err);
+                setThemeLoaded(true); // Don't block editor on theme error
+            });
+    }, [themeName, themeFile]);
 
     function handleEditorMount(editor, monaco) {
-        if (themeData) {
-            monaco.editor.defineTheme("codeforge-dark", themeData);
-            monaco.editor.setTheme("codeforge-dark");
-        }
+        monacoRef.current = monaco;
+
+        // Load the theme
+        fetch(themeFile)
+            .then((res) => res.json())
+            .then((data) => {
+                monaco.editor.defineTheme(themeName, data);
+                monaco.editor.setTheme(themeName);
+                setThemeLoaded(true);
+            })
+            .catch(() => setThemeLoaded(true));
 
         // Enable JSX support for JavaScript and TypeScript
         monaco.languages.typescript.javascriptDefaults.setCompilerOptions({
@@ -50,6 +83,19 @@ export const EditorComponent = () => {
         });
     }
 
+    const saveFile = useCallback(
+        (value, path) => {
+            if (editorSocket && path) {
+                editorSocket.emit("writeFile", {
+                    data: value,
+                    pathToFileOrFolder: path,
+                });
+                useActiveFileTabStore.getState().markSaved(path);
+            }
+        },
+        [editorSocket]
+    );
+
     function handleChange(value) {
         // Immediately update the tab store so switching tabs preserves edits
         const { activeFileTab: currentTab, openTabs } = useActiveFileTabStore.getState();
@@ -60,23 +106,25 @@ export const EditorComponent = () => {
                     t.path === currentTab.path ? { ...t, value } : t
                 ),
             });
+
+            // Mark as modified
+            useActiveFileTabStore.getState().markModified(currentTab.path);
         }
 
         // Debounce the actual file write to disk (via socket)
         if (timerRef.current) {
             clearTimeout(timerRef.current);
         }
-        timerRef.current = setTimeout(() => {
-            if (editorSocket && currentTab?.path) {
-                editorSocket.emit("writeFile", {
-                    data: value,
-                    pathToFileOrFolder: currentTab.path,
-                });
-            }
-        }, 1000);
+
+        if (autoSave) {
+            timerRef.current = setTimeout(() => {
+                saveFile(value, currentTab?.path);
+            }, autoSaveDelay);
+        }
+        // If auto-save is off, Ctrl+S (from keyboard shortcuts hook) handles saving
     }
 
-    if (!themeData) {
+    if (!themeLoaded) {
         return (
             <div
                 style={{
@@ -101,10 +149,10 @@ export const EditorComponent = () => {
             defaultLanguage="javascript"
             defaultValue="// Welcome to CodeForge ⚡\n// Open a file from the explorer to start coding"
             options={{
-                fontSize: 14,
-                fontFamily: "'JetBrains Mono', 'Fira Code', Consolas, monospace",
-                fontLigatures: true,
-                minimap: { enabled: true, maxColumn: 80 },
+                fontSize,
+                fontFamily,
+                fontLigatures,
+                minimap: { enabled: minimap, maxColumn: 80 },
                 padding: { top: 12, bottom: 12 },
                 smoothScrolling: true,
                 cursorBlinking: "smooth",
@@ -112,8 +160,9 @@ export const EditorComponent = () => {
                 renderLineHighlight: "all",
                 bracketPairColorization: { enabled: true },
                 scrollBeyondLastLine: false,
-                wordWrap: "on",
-                lineNumbers: "on",
+                wordWrap,
+                lineNumbers,
+                tabSize,
                 roundedSelection: true,
                 automaticLayout: true,
             }}

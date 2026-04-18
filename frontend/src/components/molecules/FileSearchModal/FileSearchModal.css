@@ -1,0 +1,155 @@
+/* ═══════════════════════════════════════════════════════════
+   FileSearchModal.css — Quick-open file search (Ctrl+P)
+   ═══════════════════════════════════════════════════════════ */
+
+.file-search-overlay {
+    position: fixed;
+    inset: 0;
+    z-index: 1000;
+    background: rgba(0, 0, 0, 0.5);
+    display: flex;
+    justify-content: center;
+    padding-top: 15vh;
+    animation: fadeIn 0.1s ease;
+}
+
+.file-search-modal {
+    width: 520px;
+    max-height: 420px;
+    background: #1e1f2e;
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    border-radius: 12px;
+    box-shadow: 0 20px 60px rgba(0, 0, 0, 0.6), 0 0 0 1px rgba(255, 255, 255, 0.05) inset;
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+    animation: searchSlideDown 0.15s ease-out;
+}
+
+@keyframes searchSlideDown {
+    from {
+        opacity: 0;
+        transform: translateY(-12px) scale(0.98);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0) scale(1);
+    }
+}
+
+@keyframes fadeIn {
+    from { opacity: 0; }
+    to { opacity: 1; }
+}
+
+/* ── Search Input ─────────────────────────────────────── */
+.file-search-input-wrapper {
+    display: flex;
+    align-items: center;
+    padding: 0.75rem 1rem;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+    gap: 0.65rem;
+}
+
+.file-search-icon {
+    font-size: 0.9rem;
+    flex-shrink: 0;
+    opacity: 0.6;
+}
+
+.file-search-input {
+    flex: 1;
+    background: transparent;
+    border: none;
+    outline: none;
+    color: #e2e8f0;
+    font-size: 0.9rem;
+    font-family: inherit;
+}
+
+.file-search-input::placeholder {
+    color: #475569;
+}
+
+.file-search-kbd {
+    font-size: 0.65rem;
+    padding: 0.15rem 0.45rem;
+    border-radius: 4px;
+    background: rgba(255, 255, 255, 0.06);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    color: #64748b;
+    font-family: monospace;
+}
+
+/* ── Results List ─────────────────────────────────────── */
+.file-search-results {
+    overflow-y: auto;
+    flex: 1;
+    padding: 0.35rem 0;
+    scrollbar-width: thin;
+    scrollbar-color: rgba(255, 255, 255, 0.08) transparent;
+}
+
+.file-search-item {
+    display: flex;
+    align-items: center;
+    gap: 0.6rem;
+    padding: 0.5rem 1rem;
+    width: 100%;
+    background: transparent;
+    border: none;
+    cursor: pointer;
+    font-family: inherit;
+    color: #c0caf5;
+    text-align: left;
+    transition: background 0.1s ease;
+}
+
+.file-search-item:hover,
+.file-search-item.selected {
+    background: rgba(99, 102, 241, 0.12);
+}
+
+.file-search-item.selected {
+    background: rgba(99, 102, 241, 0.18);
+}
+
+.file-search-item-icon {
+    flex-shrink: 0;
+    display: flex;
+    align-items: center;
+}
+
+.file-search-item-icon svg {
+    width: 16px;
+    height: 16px;
+}
+
+.file-search-item-name {
+    font-size: 0.85rem;
+    font-weight: 500;
+    color: #e2e8f0;
+    white-space: nowrap;
+}
+
+.file-search-item-name .highlight {
+    color: #818cf8;
+    font-weight: 700;
+}
+
+.file-search-item-path {
+    font-size: 0.72rem;
+    color: #475569;
+    margin-left: auto;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    max-width: 200px;
+}
+
+.file-search-empty {
+    padding: 2rem 1rem;
+    text-align: center;
+    color: #475569;
+    font-size: 0.85rem;
+}

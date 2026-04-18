@@ -1,0 +1,64 @@
+/* ═══════════════════════════════════════════════════════════
+   Breadcrumbs.css — File path navigation
+   ═══════════════════════════════════════════════════════════ */
+
+.breadcrumbs {
+    display: flex;
+    align-items: center;
+    padding: 0.25rem 1rem;
+    background: #1a1b26;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.04);
+    min-height: 24px;
+    overflow-x: auto;
+    scrollbar-width: none;
+    gap: 0.15rem;
+}
+
+.breadcrumbs::-webkit-scrollbar {
+    display: none;
+}
+
+.breadcrumb-item {
+    display: flex;
+    align-items: center;
+    gap: 0.15rem;
+    flex-shrink: 0;
+}
+
+.breadcrumb-icon {
+    display: flex;
+    align-items: center;
+    margin-right: 0.2rem;
+}
+
+.breadcrumb-icon svg {
+    width: 14px;
+    height: 14px;
+}
+
+.breadcrumb-segment {
+    font-size: 0.72rem;
+    color: #64748b;
+    cursor: default;
+    transition: color 0.15s ease;
+}
+
+.breadcrumb-segment:hover {
+    color: #94a3b8;
+}
+
+.breadcrumb-segment.active {
+    color: #c0caf5;
+}
+
+.breadcrumb-segment.muted {
+    color: #475569;
+    font-style: italic;
+}
+
+.breadcrumb-separator {
+    color: #334155;
+    font-size: 0.8rem;
+    margin: 0 0.15rem;
+    user-select: none;
+}

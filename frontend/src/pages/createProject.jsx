@@ -1,6 +1,8 @@
-import { useNavigate } from "react-router-dom";
+import { useNavigate, Link } from "react-router-dom";
 import { useCreateProject } from "../hooks/apis/mutations/useCreateProject";
 import { useState, useEffect, useRef, useCallback } from "react";
+import useAuthStore from "../store/authStore";
+import { useLogout } from "../hooks/apis/mutations/useLogout";
 import "./CreateProject.css";
 
 // ── Particle Canvas Component ───────────────────────────
@@ -125,6 +127,9 @@ export const CreateProject = () => {
     const { createProjectMutation } = useCreateProject();
     const navigate = useNavigate();
     const [isLoading, setIsLoading] = useState(false);
+    const { isAuthenticated, user } = useAuthStore();
+    const { logoutMutation } = useLogout();
+    const [showUserMenu, setShowUserMenu] = useState(false);
 
     const typedText = useTypewriter([
         "Write code instantly in the cloud.",
@@ -134,6 +139,10 @@ export const CreateProject = () => {
     ]);
 
     const handleCreateProject = useCallback(async () => {
+        if (!isAuthenticated) {
+            navigate('/login');
+            return;
+        }
         setIsLoading(true);
         try {
             const response = await createProjectMutation();
@@ -143,7 +152,16 @@ export const CreateProject = () => {
         } finally {
             setIsLoading(false);
         }
-    }, [createProjectMutation, navigate]);
+    }, [createProjectMutation, navigate, isAuthenticated]);
+
+    const handleLogout = useCallback(async () => {
+        try {
+            await logoutMutation();
+            setShowUserMenu(false);
+        } catch (error) {
+            console.error("Error logging out:", error);
+        }
+    }, [logoutMutation]);
 
     return (
         <div className="landing-page">
@@ -164,16 +182,100 @@ export const CreateProject = () => {
                     </div>
                 </div>
                 <div className="nav-links">
-                    <span className="nav-link">Features</span>
+                    <a className="nav-link" href="#features">Features</a>
                     <span className="nav-link">Docs</span>
-                    <a
-                        className="nav-github"
-                        href="https://github.com"
-                        target="_blank"
-                        rel="noopener noreferrer"
-                    >
-                        ★ GitHub
-                    </a>
+                    {isAuthenticated ? (
+                        <div
+                            className="nav-user-area"
+                            style={{ position: 'relative' }}
+                            onMouseLeave={() => setShowUserMenu(false)}
+                        >
+                            <button
+                                className="nav-avatar-btn"
+                                onClick={() => setShowUserMenu(!showUserMenu)}
+                                style={{
+                                    background: 'none',
+                                    border: '2px solid rgba(99, 102, 241, 0.4)',
+                                    borderRadius: '50%',
+                                    padding: '2px',
+                                    cursor: 'pointer',
+                                    display: 'flex',
+                                    alignItems: 'center',
+                                    transition: 'all 0.3s ease',
+                                }}
+                            >
+                                <img
+                                    src={user?.avatar}
+                                    alt={user?.username}
+                                    style={{
+                                        width: '34px',
+                                        height: '34px',
+                                        borderRadius: '50%',
+                                        objectFit: 'cover',
+                                        pointerEvents: 'none',
+                                    }}
+                                />
+                            </button>
+                            {showUserMenu && (
+                                <div
+                                    className="nav-user-menu"
+                                    style={{
+                                        position: 'absolute',
+                                        top: 'calc(100% + 8px)',
+                                        right: 0,
+                                        minWidth: '200px',
+                                        background: 'rgba(15, 17, 23, 0.95)',
+                                        border: '1px solid rgba(255, 255, 255, 0.1)',
+                                        borderRadius: '12px',
+                                        padding: '0.5rem',
+                                        backdropFilter: 'blur(20px)',
+                                        boxShadow: '0 15px 40px rgba(0,0,0,0.5)',
+                                        animation: 'fadeIn 0.2s ease-out',
+                                        zIndex: 100,
+                                    }}
+                                >
+                                    <div style={{
+                                        padding: '0.75rem 1rem',
+                                        borderBottom: '1px solid rgba(255,255,255,0.06)',
+                                        marginBottom: '0.35rem',
+                                    }}>
+                                        <div style={{ color: '#e2e8f0', fontWeight: 600, fontSize: '0.9rem' }}>
+                                            {user?.username}
+                                        </div>
+                                        <div style={{ color: '#64748b', fontSize: '0.78rem' }}>
+                                            {user?.email}
+                                        </div>
+                                    </div>
+                                    <button
+                                        onClick={handleLogout}
+                                        style={{
+                                            width: '100%',
+                                            padding: '0.6rem 1rem',
+                                            background: 'none',
+                                            border: 'none',
+                                            borderRadius: '8px',
+                                            color: '#ef4444',
+                                            fontSize: '0.88rem',
+                                            fontWeight: 500,
+                                            cursor: 'pointer',
+                                            textAlign: 'left',
+                                            transition: 'background 0.2s',
+                                            fontFamily: 'inherit',
+                                        }}
+                                        onMouseEnter={(e) => e.target.style.background = 'rgba(239,68,68,0.08)'}
+                                        onMouseLeave={(e) => e.target.style.background = 'none'}
+                                    >
+                                        🚪 Sign Out
+                                    </button>
+                                </div>
+                            )}
+                        </div>
+                    ) : (
+                        <>
+                            <Link to="/login" className="nav-link">Sign In</Link>
+                            <Link to="/register" className="nav-github">Get Started</Link>
+                        </>
+                    )}
                 </div>
             </nav>
 

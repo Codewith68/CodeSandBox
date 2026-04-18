@@ -51,6 +51,12 @@
     font-weight: 500;
 }
 
+.folder-icon-wrapper {
+    flex-shrink: 0;
+    display: flex;
+    align-items: center;
+}
+
 /* ── File Node ─────────────────────────────────────────── */
 .tree-node-file {
     display: flex;

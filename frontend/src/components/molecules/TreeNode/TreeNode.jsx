@@ -1,9 +1,22 @@
-import { useState } from "react";
-import { FileIcon } from "../../atoms/fileIcon/FileIcon";
+import { useState, useMemo } from "react";
+import { FileIcon, FolderIcon } from "../../atoms/fileIcon/FileIcon";
 import { useEditorSocketStore } from "../../../store/editorSocketStore";
 import { useActiveFileTabStore } from "../../../store/activeFileTabStore";
 import { useFileContextMenuStore } from "../../../store/fileContextMenuStore";
 import "./TreeNode.css";
+
+/**
+ * Sort children: folders first (alphabetically), then files (alphabetically)
+ */
+function sortChildren(children) {
+    if (!children) return [];
+    return [...children].sort((a, b) => {
+        const aIsFolder = !!a.children;
+        const bIsFolder = !!b.children;
+        if (aIsFolder !== bIsFolder) return aIsFolder ? -1 : 1;
+        return a.name.localeCompare(b.name, undefined, { sensitivity: "base" });
+    });
+}
 
 export const TreeNode = ({ fileFolderData, depth = 0 }) => {
     const [isOpen, setIsOpen] = useState(false);
@@ -16,6 +29,12 @@ export const TreeNode = ({ fileFolderData, depth = 0 }) => {
         setY: setFileContextMenuY,
         setFolder,
     } = useFileContextMenuStore();
+
+    // Sort children once when data changes
+    const sortedChildren = useMemo(
+        () => sortChildren(fileFolderData?.children),
+        [fileFolderData?.children]
+    );
 
     if (!fileFolderData) return null;
 
@@ -50,11 +69,14 @@ export const TreeNode = ({ fileFolderData, depth = 0 }) => {
                     onContextMenu={handleContextMenu}
                 >
                     <span className={`folder-arrow ${isOpen ? "open" : ""}`}>▶</span>
+                    <span className="folder-icon-wrapper">
+                        <FolderIcon isOpen={isOpen} />
+                    </span>
                     <span className="folder-name">{fileName}</span>
                 </button>
-                {isOpen && fileFolderData.children && (
+                {isOpen && sortedChildren.length > 0 && (
                     <div className="tree-children">
-                        {fileFolderData.children.map((child) => (
+                        {sortedChildren.map((child) => (
                             <TreeNode
                                 key={child.name}
                                 fileFolderData={child}
@@ -71,11 +93,11 @@ export const TreeNode = ({ fileFolderData, depth = 0 }) => {
         <div
             className={`tree-node-file ${isActive ? "active" : ""}`}
             style={{ "--depth": depth }}
-            onDoubleClick={handleFileClick}
+            onClick={handleFileClick}
             onContextMenu={handleContextMenu}
         >
             <span className="file-icon-wrapper">
-                <FileIcon extension={extension} />
+                <FileIcon extension={extension} filename={fileName} />
             </span>
             <span className="file-name">{fileName}</span>
         </div>

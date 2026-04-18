@@ -24,7 +24,13 @@
 .terminal-header-left {
     display: flex;
     align-items: center;
-    gap: 0.5rem;
+    gap: 0.25rem;
+    overflow-x: auto;
+    scrollbar-width: none;
+}
+
+.terminal-header-left::-webkit-scrollbar {
+    display: none;
 }
 
 .terminal-tab {
@@ -32,15 +38,53 @@
     align-items: center;
     gap: 0.35rem;
     font-size: 0.75rem;
-    color: #e2e8f0;
+    color: #64748b;
     padding: 0.2rem 0.5rem;
-    background: rgba(255, 255, 255, 0.05);
+    background: transparent;
     border-radius: 4px;
     font-weight: 500;
+    cursor: pointer;
+    border: none;
+    font-family: inherit;
+    transition: all 0.15s ease;
+    white-space: nowrap;
+}
+
+.terminal-tab:hover {
+    color: #94a3b8;
+    background: rgba(255, 255, 255, 0.04);
+}
+
+.terminal-tab.active {
+    color: #e2e8f0;
+    background: rgba(255, 255, 255, 0.06);
 }
 
 .terminal-tab-icon {
-    font-size: 0.7rem;
+    font-size: 0.6rem;
+}
+
+.terminal-tab-label {
+    font-size: 0.75rem;
+}
+
+.terminal-tab-close {
+    font-size: 0.55rem;
+    color: #475569;
+    margin-left: 0.2rem;
+    padding: 0.1rem;
+    border-radius: 2px;
+    transition: all 0.15s ease;
+    opacity: 0;
+}
+
+.terminal-tab:hover .terminal-tab-close {
+    opacity: 1;
+}
+
+.terminal-tab-close:hover {
+    color: #f7768e;
+    background: rgba(247, 118, 142, 0.15);
 }
 
 .terminal-header-actions {
@@ -60,8 +104,10 @@
     color: #64748b;
     border-radius: 4px;
     cursor: pointer;
-    font-size: 0.7rem;
+    font-size: 0.85rem;
+    font-weight: 600;
     transition: all 0.15s ease;
+    font-family: inherit;
 }
 
 .terminal-action-btn:hover {

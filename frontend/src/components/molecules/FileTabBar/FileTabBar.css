@@ -96,3 +96,28 @@
     min-height: 36px;
     background: #16171f;
 }
+
+/* ── Unsaved Dot Indicator ──────────────────────────── */
+.file-tab-close.modified {
+    opacity: 1;
+}
+
+.unsaved-dot {
+    color: #e2e8f0;
+    font-size: 0.55rem;
+    line-height: 1;
+}
+
+.file-tab-close.modified:hover .unsaved-dot {
+    display: none;
+}
+
+.file-tab-close.modified:hover::after {
+    content: "✕";
+    font-size: 0.65rem;
+    color: #64748b;
+}
+
+.file-tab-close.modified:hover {
+    background: rgba(255, 255, 255, 0.1);
+}
