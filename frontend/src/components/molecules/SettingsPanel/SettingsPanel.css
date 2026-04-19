@@ -1,0 +1,397 @@
+/* ═══════════════════════════════════════════════════════════
+   SettingsPanel.css — IDE Settings Slide-in Panel
+   ═══════════════════════════════════════════════════════════ */
+
+/* ── Overlay ──────────────────────────────────────────── */
+.settings-overlay {
+    position: fixed;
+    inset: 0;
+    z-index: 900;
+    background: rgba(0, 0, 0, 0.45);
+    display: flex;
+    justify-content: flex-end;
+    animation: fadeIn 0.15s ease;
+}
+
+@keyframes fadeIn {
+    from { opacity: 0; }
+    to { opacity: 1; }
+}
+
+/* ── Panel ────────────────────────────────────────────── */
+.settings-panel {
+    width: 420px;
+    max-width: 90vw;
+    height: 100%;
+    background: #16171f;
+    border-left: 1px solid rgba(255, 255, 255, 0.08);
+    display: flex;
+    flex-direction: column;
+    animation: slideIn 0.2s ease-out;
+    box-shadow: -10px 0 40px rgba(0, 0, 0, 0.4);
+}
+
+@keyframes slideIn {
+    from { transform: translateX(100%); }
+    to { transform: translateX(0); }
+}
+
+/* ── Header ───────────────────────────────────────────── */
+.settings-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 1rem 1.25rem;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.06);
+}
+
+.settings-header-left {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+}
+
+.settings-header-icon {
+    font-size: 1.1rem;
+}
+
+.settings-title {
+    font-size: 1rem;
+    font-weight: 600;
+    color: #e2e8f0;
+    margin: 0;
+}
+
+.settings-close-btn {
+    width: 28px;
+    height: 28px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: transparent;
+    border: none;
+    color: #64748b;
+    cursor: pointer;
+    border-radius: 6px;
+    font-size: 0.8rem;
+    transition: all 0.15s ease;
+}
+
+.settings-close-btn:hover {
+    background: rgba(255, 255, 255, 0.08);
+    color: #e2e8f0;
+}
+
+/* ── Body ─────────────────────────────────────────────── */
+.settings-body {
+    flex: 1;
+    overflow-y: auto;
+    padding: 0.5rem 0;
+    scrollbar-width: thin;
+    scrollbar-color: rgba(255, 255, 255, 0.08) transparent;
+}
+
+.settings-body::-webkit-scrollbar {
+    width: 5px;
+}
+
+.settings-body::-webkit-scrollbar-thumb {
+    background: rgba(255, 255, 255, 0.08);
+    border-radius: 3px;
+}
+
+/* ── Section ──────────────────────────────────────────── */
+.settings-section {
+    padding: 1rem 1.25rem;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.04);
+}
+
+.settings-section-title {
+    font-size: 0.8rem;
+    font-weight: 600;
+    color: #94a3b8;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    margin: 0 0 0.75rem;
+}
+
+/* ── Theme Grid ───────────────────────────────────────── */
+.theme-grid {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 0.6rem;
+}
+
+.theme-card {
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+    padding: 0.5rem;
+    background: rgba(255, 255, 255, 0.03);
+    border: 2px solid transparent;
+    border-radius: 10px;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    font-family: inherit;
+}
+
+.theme-card:hover {
+    background: rgba(255, 255, 255, 0.05);
+    border-color: rgba(255, 255, 255, 0.1);
+}
+
+.theme-card.active {
+    border-color: #6366f1;
+    background: rgba(99, 102, 241, 0.08);
+}
+
+.theme-preview {
+    height: 52px;
+    border-radius: 6px;
+    padding: 0.4rem 0.6rem;
+    display: flex;
+    flex-direction: column;
+    gap: 3px;
+    justify-content: center;
+}
+
+.theme-preview-accent {
+    width: 35%;
+    height: 4px;
+    border-radius: 2px;
+}
+
+.theme-preview-line {
+    width: 80%;
+    height: 3px;
+    border-radius: 2px;
+}
+
+.theme-preview-line.short {
+    width: 50%;
+}
+
+.theme-label {
+    font-size: 0.72rem;
+    color: #94a3b8;
+    font-weight: 500;
+    text-align: center;
+}
+
+.theme-card.active .theme-label {
+    color: #a5b4fc;
+}
+
+/* ── Setting Row ──────────────────────────────────────── */
+.setting-row {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 0.6rem 0;
+    gap: 1rem;
+}
+
+.setting-row + .setting-row {
+    border-top: 1px solid rgba(255, 255, 255, 0.03);
+}
+
+.setting-info {
+    display: flex;
+    flex-direction: column;
+    gap: 0.15rem;
+    min-width: 0;
+}
+
+.setting-label {
+    font-size: 0.85rem;
+    color: #e2e8f0;
+    font-weight: 500;
+}
+
+.setting-description {
+    font-size: 0.72rem;
+    color: #475569;
+}
+
+/* ── Toggle Switch ────────────────────────────────────── */
+.setting-toggle {
+    position: relative;
+    display: inline-block;
+    width: 38px;
+    height: 20px;
+    flex-shrink: 0;
+    cursor: pointer;
+}
+
+.setting-toggle input {
+    opacity: 0;
+    width: 0;
+    height: 0;
+}
+
+.toggle-slider {
+    position: absolute;
+    inset: 0;
+    background: rgba(255, 255, 255, 0.1);
+    border-radius: 20px;
+    transition: all 0.3s ease;
+}
+
+.toggle-slider::before {
+    content: '';
+    position: absolute;
+    width: 16px;
+    height: 16px;
+    left: 2px;
+    top: 2px;
+    background: #64748b;
+    border-radius: 50%;
+    transition: all 0.3s ease;
+}
+
+.setting-toggle input:checked + .toggle-slider {
+    background: rgba(99, 102, 241, 0.5);
+}
+
+.setting-toggle input:checked + .toggle-slider::before {
+    transform: translateX(18px);
+    background: #6366f1;
+}
+
+/* ── Slider ───────────────────────────────────────────── */
+.slider-control {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    flex-shrink: 0;
+}
+
+.setting-slider {
+    width: 100px;
+    height: 4px;
+    -webkit-appearance: none;
+    appearance: none;
+    background: rgba(255, 255, 255, 0.1);
+    border-radius: 4px;
+    outline: none;
+    cursor: pointer;
+}
+
+.setting-slider::-webkit-slider-thumb {
+    -webkit-appearance: none;
+    width: 14px;
+    height: 14px;
+    background: #6366f1;
+    border-radius: 50%;
+    cursor: pointer;
+    transition: transform 0.15s ease;
+}
+
+.setting-slider::-webkit-slider-thumb:hover {
+    transform: scale(1.2);
+}
+
+.setting-slider::-moz-range-thumb {
+    width: 14px;
+    height: 14px;
+    background: #6366f1;
+    border-radius: 50%;
+    border: none;
+    cursor: pointer;
+}
+
+.setting-value {
+    font-size: 0.75rem;
+    color: #94a3b8;
+    min-width: 32px;
+    text-align: right;
+    font-family: 'JetBrains Mono', monospace;
+}
+
+/* ── Select ───────────────────────────────────────────── */
+.setting-select {
+    padding: 0.35rem 0.6rem;
+    background: rgba(255, 255, 255, 0.05);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    border-radius: 6px;
+    color: #e2e8f0;
+    font-size: 0.8rem;
+    font-family: inherit;
+    cursor: pointer;
+    outline: none;
+}
+
+.setting-select:focus {
+    border-color: rgba(99, 102, 241, 0.5);
+}
+
+.setting-select option {
+    background: #1e1f2e;
+}
+
+/* ── Shortcuts ────────────────────────────────────────── */
+.shortcuts-list {
+    display: flex;
+    flex-direction: column;
+    gap: 0.1rem;
+}
+
+.shortcut-row {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 0.45rem 0;
+}
+
+.shortcut-action {
+    font-size: 0.82rem;
+    color: #94a3b8;
+}
+
+.shortcut-keys {
+    display: flex;
+    align-items: center;
+    gap: 0.15rem;
+}
+
+.shortcut-kbd {
+    font-size: 0.68rem;
+    padding: 0.15rem 0.4rem;
+    background: rgba(255, 255, 255, 0.06);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    border-radius: 4px;
+    color: #94a3b8;
+    font-family: 'JetBrains Mono', monospace;
+}
+
+.shortcut-separator {
+    font-size: 0.65rem;
+    color: #334155;
+    margin: 0 0.1rem;
+}
+
+/* ── Footer ───────────────────────────────────────────── */
+.settings-footer {
+    padding: 0.75rem 1.25rem;
+    border-top: 1px solid rgba(255, 255, 255, 0.06);
+}
+
+.settings-reset-btn {
+    width: 100%;
+    padding: 0.55rem;
+    background: rgba(255, 255, 255, 0.04);
+    border: 1px solid rgba(255, 255, 255, 0.08);
+    border-radius: 8px;
+    color: #64748b;
+    font-size: 0.8rem;
+    font-weight: 500;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    font-family: inherit;
+}
+
+.settings-reset-btn:hover {
+    background: rgba(255, 255, 255, 0.06);
+    color: #94a3b8;
+    border-color: rgba(255, 255, 255, 0.12);
+}

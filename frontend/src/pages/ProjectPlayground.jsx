@@ -4,11 +4,18 @@ import { TreeStructure } from "../components/organism/treeStructure/treeStructur
 import { useEffect, useState } from "react";
 import { useTreeStructureStore } from "../store/treeStructureStore";
 import { useEditorSocketStore } from "../store/editorSocketStore";
+import { useActiveFileTabStore } from "../store/activeFileTabStore";
+import { useSettingsStore } from "../store/settingsStore";
 import { io } from "socket.io-client";
 import { BrowserTerminal } from "../components/molecules/BrowserTerminal/BrowserTerminal";
 import { useTerminalSocketStore } from "../store/terminalSocketStore";
 import { Browser } from "../components/organism/Browser/Browser";
 import { FileTabBar } from "../components/molecules/FileTabBar/FileTabBar";
+import { Breadcrumbs } from "../components/molecules/Breadcrumbs/Breadcrumbs";
+import { FileSearchModal } from "../components/molecules/FileSearchModal/FileSearchModal";
+import { SettingsPanel } from "../components/molecules/SettingsPanel/SettingsPanel";
+import { useKeyboardShortcuts } from "../hooks/useKeyboardShortcuts";
+import { extensionToFileType } from "../utils/extensionToFileType";
 import { Allotment } from "allotment";
 import "allotment/dist/style.css";
 import "./ProjectPlayground.css";
@@ -17,8 +24,16 @@ export const ProjectPlayground = () => {
     const { projectId: projectIdFromUrl } = useParams();
     const { setProjectId, projectId } = useTreeStructureStore();
     const { setEditorSocket } = useEditorSocketStore();
-    const { terminalSocket, setTerminalSocket } = useTerminalSocketStore();
+    const { terminals } = useTerminalSocketStore();
     const [isConnected, setIsConnected] = useState(false);
+
+    // Active file tab for status bar info
+    const activeFileTab = useActiveFileTabStore((s) => s.activeFileTab);
+    const autoSave = useSettingsStore((s) => s.autoSave);
+    const toggleSettingsPanel = useSettingsStore((s) => s.toggleSettingsPanel);
+
+    // Register global keyboard shortcuts
+    useKeyboardShortcuts();
 
     useEffect(() => {
         if (projectIdFromUrl) {
@@ -33,23 +48,15 @@ export const ProjectPlayground = () => {
             editorSocketConn.on("connect", () => setIsConnected(true));
             editorSocketConn.on("disconnect", () => setIsConnected(false));
 
-            // WebSocket for terminal
-            try {
-                const ws = new WebSocket(
-                    `ws://localhost:4000/terminal?projectId=${projectIdFromUrl}`
-                );
-                setTerminalSocket(ws);
-            } catch (error) {
-                console.error("Terminal WebSocket error:", error);
-            }
-
             setEditorSocket(editorSocketConn);
 
             return () => {
                 editorSocketConn.disconnect();
+                // Clean up all terminals on unmount
+                useTerminalSocketStore.getState().closeAll();
             };
         }
-    }, [setProjectId, projectIdFromUrl, setEditorSocket, setTerminalSocket]);
+    }, [setProjectId, projectIdFromUrl, setEditorSocket]);
 
     // Loading state
     if (!projectId) {
@@ -63,6 +70,11 @@ export const ProjectPlayground = () => {
 
     // Truncate project ID for display
     const shortId = projectIdFromUrl?.substring(0, 8) || "project";
+
+    // Current file language for status bar
+    const currentLanguage = activeFileTab?.extension
+        ? extensionToFileType(activeFileTab.extension) || activeFileTab.extension
+        : null;
 
     return (
         <div className="playground-container">
@@ -78,6 +90,13 @@ export const ProjectPlayground = () => {
                     📁 {shortId}...
                 </div>
                 <div className="topbar-actions">
+                    <button
+                        className="topbar-action-btn"
+                        title="Settings (Ctrl+,)"
+                        onClick={toggleSettingsPanel}
+                    >
+                        ⚙️
+                    </button>
                     <div className="topbar-status">
                         <span className={`status-dot ${isConnected ? "" : "disconnected"}`} />
                         {isConnected ? "Connected" : "Disconnected"}
@@ -98,13 +117,14 @@ export const ProjectPlayground = () => {
                     <Allotment.Pane minSize={300}>
                         <div className="playground-editor-area" style={{ height: "100%" }}>
                             <FileTabBar />
+                            <Breadcrumbs />
                             <div style={{ flex: 1, minHeight: 0, height: "100%" }}>
                                 <Allotment vertical>
                                     <Allotment.Pane minSize={100}>
                                         <EditorComponent />
                                     </Allotment.Pane>
                                     <Allotment.Pane minSize={80} preferredSize={200}>
-                                        <BrowserTerminal />
+                                        <BrowserTerminal projectId={projectIdFromUrl} />
                                     </Allotment.Pane>
                                 </Allotment>
                             </div>
@@ -114,7 +134,7 @@ export const ProjectPlayground = () => {
                     {/* Right: Browser Preview */}
                     <Allotment.Pane minSize={250}>
                         <div className="playground-preview-area" style={{ height: "100%" }}>
-                            {terminalSocket && (
+                            {terminals.length > 0 && (
                                 <Browser projectId={projectIdFromUrl} />
                             )}
                         </div>
@@ -131,11 +151,23 @@ export const ProjectPlayground = () => {
                     </span>
                 </div>
                 <div className="statusbar-right">
-                    <span className="statusbar-item">React + Vite</span>
+                    {activeFileTab?.isModified && (
+                        <span className="statusbar-item statusbar-unsaved">● Modified</span>
+                    )}
+                    {autoSave && (
+                        <span className="statusbar-item statusbar-autosave">⟳ Auto-save</span>
+                    )}
+                    {currentLanguage && (
+                        <span className="statusbar-item">{currentLanguage}</span>
+                    )}
                     <span className="statusbar-item">🐳 Docker</span>
                     <span className="statusbar-item">UTF-8</span>
                 </div>
             </div>
+
+            {/* ── Overlay Modals ─────────────────────────── */}
+            <FileSearchModal />
+            <SettingsPanel />
         </div>
     );
 };
