@@ -76,7 +76,15 @@ editorNamespace.on("connection", (socket) => {
         });
     }
 
-    handleEditorSocketEvents(socket, editorNamespace);
+    handleEditorSocketEvents(socket, editorNamespace, projectId);
+
+    // Clean up watcher and sync to S3 on disconnect
+    socket.on("disconnect", () => {
+        console.log(`Editor disconnected for project ${projectId}`);
+        if (watcher) {
+            watcher.close();
+        }
+    });
 
 });
 
