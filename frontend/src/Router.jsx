@@ -1,6 +1,7 @@
 import { Route, Routes } from "react-router-dom";
 import { CreateProject } from "./pages/createProject";
 import { ProjectPlayground } from "./pages/ProjectPlayground";
+import { MyProjectsPage } from "./pages/MyProjectsPage";
 import { LoginPage } from "./pages/LoginPage";
 import { RegisterPage } from "./pages/RegisterPage";
 import { ForgotPasswordPage } from "./pages/ForgotPasswordPage";
@@ -41,6 +42,14 @@ export const Router = () => {
             <Route path="/" element={<CreateProject />} />
 
             {/* Protected routes — require authentication */}
+            <Route
+                path="/projects"
+                element={
+                    <ProtectedRoute>
+                        <MyProjectsPage />
+                    </ProtectedRoute>
+                }
+            />
             <Route
                 path="/project/:projectId"
                 element={

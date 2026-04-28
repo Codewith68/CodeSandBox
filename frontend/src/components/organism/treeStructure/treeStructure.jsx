@@ -6,7 +6,7 @@ import { FileContextMenu } from "../../molecules/contextMenu/FileContextMenu.jsx
 import { useEditorSocketStore } from "../../../store/editorSocketStore";
 import "./treeStructure.css";
 
-export const TreeStructure = () => {
+export const TreeStructure = ({ projectName }) => {
     const { treeStructure, setTreeStructure } = useTreeStructureStore();
     const { editorSocket } = useEditorSocketStore();
     const {
@@ -35,6 +35,11 @@ export const TreeStructure = () => {
         }
     }, [editorSocket, setTreeStructure]);
 
+    // Override root folder name with project name
+    const displayTree = treeStructure && projectName
+        ? { ...treeStructure, name: projectName }
+        : treeStructure;
+
     return (
         <div className="tree-explorer">
             <div className="tree-header">
@@ -53,7 +58,7 @@ export const TreeStructure = () => {
                 {isFileContextOpen && fileContextX && fileContextY && (
                     <FileContextMenu x={fileContextX} y={fileContextY} path={file} />
                 )}
-                <TreeNode fileFolderData={treeStructure} depth={0} />
+                <TreeNode fileFolderData={displayTree} depth={0} />
             </div>
         </div>
     );
