@@ -130,6 +130,8 @@ export const CreateProject = () => {
     const { isAuthenticated, user } = useAuthStore();
     const { logoutMutation } = useLogout();
     const [showUserMenu, setShowUserMenu] = useState(false);
+    const [showNameModal, setShowNameModal] = useState(false);
+    const [projectName, setProjectName] = useState('');
 
     const typedText = useTypewriter([
         "Write code instantly in the cloud.",
@@ -138,21 +140,28 @@ export const CreateProject = () => {
         "Docker-powered sandboxed environments.",
     ]);
 
-    const handleCreateProject = useCallback(async () => {
+    const handleCreateClick = useCallback(() => {
         if (!isAuthenticated) {
             navigate('/login');
             return;
         }
+        setProjectName('');
+        setShowNameModal(true);
+    }, [isAuthenticated, navigate]);
+
+    const handleCreateProject = useCallback(async () => {
+        if (!projectName.trim()) return;
         setIsLoading(true);
+        setShowNameModal(false);
         try {
-            const response = await createProjectMutation();
-            navigate(`/project/${response.data}`);
+            const response = await createProjectMutation({ name: projectName.trim() });
+            navigate(`/project/${response.data.projectId}`, { state: { projectName: projectName.trim() } });
         } catch (error) {
             console.error("Error creating project:", error);
         } finally {
             setIsLoading(false);
         }
-    }, [createProjectMutation, navigate, isAuthenticated]);
+    }, [createProjectMutation, navigate, projectName]);
 
     const handleLogout = useCallback(async () => {
         try {
@@ -184,6 +193,9 @@ export const CreateProject = () => {
                 <div className="nav-links">
                     <a className="nav-link" href="#features">Features</a>
                     <span className="nav-link">Docs</span>
+                    {isAuthenticated && (
+                        <Link to="/projects" className="nav-link">My Projects</Link>
+                    )}
                     {isAuthenticated ? (
                         <div
                             className="nav-user-area"
@@ -300,7 +312,7 @@ export const CreateProject = () => {
                 <div className="cta-group">
                     <button
                         className="cta-primary"
-                        onClick={handleCreateProject}
+                        onClick={handleCreateClick}
                         disabled={isLoading}
                         id="create-playground-btn"
                     >
@@ -454,6 +466,68 @@ export const CreateProject = () => {
             <footer className="landing-footer">
                 CodeForge © {new Date().getFullYear()} — Cloud IDE for Modern Developers
             </footer>
+
+            {/* Project Name Modal */}
+            {showNameModal && (
+                <div className="name-modal-overlay" onClick={() => setShowNameModal(false)}>
+                    <div className="name-modal" onClick={(e) => e.stopPropagation()}>
+                        <div className="name-modal-icon">
+                            <svg viewBox="0 0 24 24" width="28" height="28" fill="none">
+                                <path d="M13 2L3 14h9l-1 8 10-12h-9l1-8z" fill="url(#modal-bolt)" stroke="none" />
+                                <defs>
+                                    <linearGradient id="modal-bolt" x1="3" y1="2" x2="22" y2="22">
+                                        <stop offset="0%" stopColor="#818cf8" />
+                                        <stop offset="100%" stopColor="#c084fc" />
+                                    </linearGradient>
+                                </defs>
+                            </svg>
+                        </div>
+                        <h3 className="name-modal-title">Create New Project</h3>
+                        <p className="name-modal-desc">Give your project a name to get started</p>
+                        <div className="name-modal-field">
+                            <label className="name-modal-label">Project Name</label>
+                            <input
+                                className="name-modal-input"
+                                type="text"
+                                placeholder="My Awesome App"
+                                value={projectName}
+                                onChange={(e) => setProjectName(e.target.value)}
+                                onKeyDown={(e) => e.key === 'Enter' && handleCreateProject()}
+                                autoFocus
+                                maxLength={100}
+                            />
+                        </div>
+                        <div className="name-modal-template">
+                            <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="#61dafb" strokeWidth="1.5">
+                                <circle cx="12" cy="12" r="2.5" fill="#61dafb" stroke="none" />
+                                <ellipse cx="12" cy="12" rx="10" ry="4" />
+                                <ellipse cx="12" cy="12" rx="10" ry="4" transform="rotate(60 12 12)" />
+                                <ellipse cx="12" cy="12" rx="10" ry="4" transform="rotate(120 12 12)" />
+                            </svg>
+                            <span>React + Vite template</span>
+                        </div>
+                        <div className="name-modal-actions">
+                            <button
+                                className="name-modal-cancel"
+                                onClick={() => setShowNameModal(false)}
+                            >
+                                Cancel
+                            </button>
+                            <button
+                                className="name-modal-create"
+                                onClick={handleCreateProject}
+                                disabled={!projectName.trim()}
+                            >
+                                <svg viewBox="0 0 20 20" width="16" height="16" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round">
+                                    <line x1="10" y1="4" x2="10" y2="16" />
+                                    <line x1="4" y1="10" x2="16" y2="10" />
+                                </svg>
+                                Create Project
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            )}
         </div>
     );
 };

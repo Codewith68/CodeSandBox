@@ -1,7 +1,8 @@
-import { useParams } from "react-router-dom";
+import { useParams, Link } from "react-router-dom";
 import { EditorComponent } from "../components/molecules/EditorComponent/EditorComponent";
 import { TreeStructure } from "../components/organism/treeStructure/treeStructure";
 import { useEffect, useState } from "react";
+import { useLocation } from "react-router-dom";
 import { useTreeStructureStore } from "../store/treeStructureStore";
 import { useEditorSocketStore } from "../store/editorSocketStore";
 import { useActiveFileTabStore } from "../store/activeFileTabStore";
@@ -26,6 +27,19 @@ export const ProjectPlayground = () => {
     const { setEditorSocket } = useEditorSocketStore();
     const { terminals } = useTerminalSocketStore();
     const [isConnected, setIsConnected] = useState(false);
+    const location = useLocation();
+
+    // Get the project name from navigation state or localStorage
+    const [projectName, setProjectName] = useState(() => {
+        return location.state?.projectName || localStorage.getItem(`projectName_${projectIdFromUrl}`) || null;
+    });
+
+    // Persist project name to localStorage
+    useEffect(() => {
+        if (projectName) {
+            localStorage.setItem(`projectName_${projectIdFromUrl}`, projectName);
+        }
+    }, [projectName, projectIdFromUrl]);
 
     // Active file tab for status bar info
     const activeFileTab = useActiveFileTabStore((s) => s.activeFileTab);
@@ -80,14 +94,14 @@ export const ProjectPlayground = () => {
         <div className="playground-container">
             {/* Top Navigation Bar */}
             <div className="playground-topbar">
-                <div className="topbar-brand">
+                <Link to="/" className="topbar-brand" style={{ textDecoration: 'none' }}>
                     <div className="topbar-logo">⚡</div>
                     <div className="topbar-title">
                         Code<span>Forge</span>
                     </div>
-                </div>
+                </Link>
                 <div className="topbar-project-name">
-                    📁 {shortId}...
+                    📁 {projectName || shortId}
                 </div>
                 <div className="topbar-actions">
                     <button
@@ -108,7 +122,7 @@ export const ProjectPlayground = () => {
             <div className="playground-main">
                 {/* Sidebar - File Explorer */}
                 <div className="playground-sidebar">
-                    <TreeStructure />
+                    <TreeStructure projectName={projectName} />
                 </div>
 
                 {/* Editor + Terminal + Browser */}
