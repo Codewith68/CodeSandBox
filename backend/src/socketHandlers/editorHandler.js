@@ -1,8 +1,9 @@
 import fs from "fs/promises";
 import path from "path";
 import { getContainerPort } from "../containers/handleContainerCreate.js";
+import { syncProjectToS3Service } from "../service/projectService.js";
 
-export const handleEditorSocketEvents = (socket, editorNamespace) => {
+export const handleEditorSocketEvents = (socket, editorNamespace, projectId) => {
 
     // ── Write File ──────────────────────────────────────────
     socket.on("writeFile", async ({ data, pathToFileOrFolder }) => {
@@ -118,5 +119,18 @@ export const handleEditorSocketEvents = (socket, editorNamespace) => {
     socket.on("getPort", async ({ containerName }) => {
         const port = await getContainerPort(containerName);
         socket.emit("getPortSuccess", { port });
+    });
+
+    // ── Sync to S3 on Disconnect ────────────────────────────
+    socket.on("disconnect", async () => {
+        if (projectId) {
+            console.log(`[S3 Sync] User disconnected — syncing project ${projectId}...`);
+            try {
+                await syncProjectToS3Service(projectId);
+                console.log(`[S3 Sync] Project ${projectId} synced successfully`);
+            } catch (error) {
+                console.error(`[S3 Sync] Failed to sync ${projectId}:`, error.message);
+            }
+        }
     });
 };
